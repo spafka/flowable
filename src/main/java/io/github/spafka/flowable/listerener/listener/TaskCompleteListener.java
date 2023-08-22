@@ -2,6 +2,7 @@
  * Licensed to the Deep Blue SUPCON
  */
 package io.github.spafka.flowable.listerener.listener;
+
 import io.github.spafka.flowable.listerener.AbstractTaskListener;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.engine.TaskService;
@@ -19,10 +20,9 @@ public class TaskCompleteListener extends AbstractTaskListener {
     @Override
     public void execute(DelegateTask task) {
         //判断是否是最后一个处理节点
-        log.info("[task] complete {}",task);
+        log.info("[task] complete {}", task);
 
     }
-
 
 
 }

@@ -1,0 +1,18 @@
+spring:
+  # h2配置
+  jpa:
+    show-sql: true # 打印Sql语句
+    hibernate:
+      ddl-auto: update #设置ddl模式，表不存在时，根据实体类的@Entity注解生成表
+  datasource: #数据库连接设置
+    driver-class-name: org.h2.Driver
+    druid:
+      #      url: jdbc:h2:mem:test  # 内存模式 ，test 为自定义的数据库名
+      url: jdbc:h2:file:./aa # 持久化保存的模式，保存文件的路径
+      password: h2 # 数据库的用户名，用于登录页面
+      username: h2 # 数据库的密码，用于登录页面
+
+  h2:
+    console:
+      path: /h2 #  配置文件的URL路径，可以通过YOUR_URL/h2 访问h2 web consloe。
+      enabled: true  # 开启时就会启动h2 web consloe，用于自测阶段

@@ -14,23 +14,25 @@ import java.util.Set;
  * @author: zhuangmh
  * @date: 2020年6月2日 下午3:17:23
  */
-public abstract class AbstractMultipleTaskStartListener extends AbstractFlowableEventListener  {
+public abstract class AbstractMultipleTaskStartListener extends AbstractFlowableEventListener {
 
     private static final String MULTIPLE_TASK_ASSIGNEE_VARIABLE = "assigneeList";
     @Autowired
     @Lazy
     private RuntimeService runtimeService;
+
     /**
      * 获取会签成员列表
-     * @param taskDefinitionKey 节点ID
+     *
+     * @param taskDefinitionKey   节点ID
      * @param processDefinitionId 流程定义ID
      * @return
      */
     public abstract Set<String> getMultipleTaskAssigneeValue(String taskDefinitionKey, String processDefinitionId, String processId);
-    
+
     @Override
     public void onEvent(FlowableEvent arg0) {
-        FlowableMultiInstanceActivityEvent event = (FlowableMultiInstanceActivityEvent)arg0;
+        FlowableMultiInstanceActivityEvent event = (FlowableMultiInstanceActivityEvent) arg0;
 
 
         Set<String> multipleTaskAssignees = getMultipleTaskAssigneeValue(event.getActivityId(), event.getProcessDefinitionId(), event.getProcessInstanceId());
@@ -40,7 +42,7 @@ public abstract class AbstractMultipleTaskStartListener extends AbstractFlowable
         }
         runtimeService.setVariable(event.getExecutionId(), MULTIPLE_TASK_ASSIGNEE_VARIABLE, multipleTaskAssignees);
     }
-    
+
     /**
      * @see org.flowable.common.engine.api.delegate.event.FlowableEventListener#isFailOnException()
      */

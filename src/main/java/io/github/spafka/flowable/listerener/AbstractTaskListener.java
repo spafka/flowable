@@ -4,25 +4,18 @@
 package io.github.spafka.flowable.listerener;
 
 
-import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.bpmn.model.UserTask;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
-import org.flowable.engine.repository.Deployment;
-import org.flowable.engine.repository.ProcessDefinition;
-import org.flowable.identitylink.api.IdentityLink;
 import org.flowable.task.service.delegate.DelegateTask;
 import org.flowable.task.service.delegate.TaskListener;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 
 
 public abstract class AbstractTaskListener implements TaskListener {

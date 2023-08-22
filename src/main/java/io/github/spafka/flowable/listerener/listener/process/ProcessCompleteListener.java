@@ -22,7 +22,7 @@ public class ProcessCompleteListener extends AbstractProcessCompleteListener {
 
     @Override
     public void updateProcess(String processId) {
-        log.info("[deploy] {}结束",processId);
+        log.info("[deploy] {}结束", processId);
 
     }
 

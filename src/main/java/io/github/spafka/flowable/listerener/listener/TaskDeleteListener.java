@@ -17,11 +17,9 @@ public class TaskDeleteListener extends AbstractTaskListener {
     @Override
     public void execute(DelegateTask task) {
 
-        log.info("[task delete]{}",task);
+        log.info("[task delete]{}", task);
 
     }
-
-
 
 
 }
