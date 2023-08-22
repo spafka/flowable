@@ -1,0 +1,104 @@
+package io.github.spafka.flowable;
+
+import io.github.spafka.flowable.listerener.listener.TaskCompleteListener;
+import io.github.spafka.flowable.listerener.listener.TaskCreateListener;
+import io.github.spafka.flowable.listerener.listener.TaskDeleteListener;
+import io.github.spafka.flowable.listerener.listener.process.ProcessCompleteListener;
+import io.github.spafka.flowable.listerener.listener.process.ProcessStartListener;
+import liquibase.pro.packaged.L;
+import lombok.extern.slf4j.Slf4j;
+import org.flowable.common.engine.api.delegate.event.FlowableEngineEventType;
+import org.flowable.common.engine.api.delegate.event.FlowableEvent;
+import org.flowable.common.engine.api.delegate.event.FlowableEventDispatcher;
+import org.flowable.common.engine.api.delegate.event.FlowableEventListener;
+import org.flowable.engine.impl.db.DbIdGenerator;
+import org.flowable.spring.SpringExpressionManager;
+import org.flowable.spring.SpringProcessEngineConfiguration;
+import org.flowable.spring.boot.EngineConfigurationConfigurer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.ContextRefreshedEvent;
+
+import java.util.*;
+
+@Slf4j(topic = "van")
+@Configuration
+public class FlowableConfig implements EngineConfigurationConfigurer<SpringProcessEngineConfiguration>, ApplicationListener<ContextRefreshedEvent> {
+
+
+    @Autowired
+    @Lazy
+    ApplicationContext applicationContext;
+    @Autowired
+    @Lazy
+    TaskCreateListener taskCreateListener;
+    @Autowired
+    @Lazy
+    TaskCompleteListener taskCompleteListener;
+    @Autowired
+    @Lazy
+    TaskDeleteListener taskDeleteListener;
+    @Autowired
+    @Lazy
+    ProcessStartListener processStartListener;
+    @Autowired
+    @Lazy
+    ProcessCompleteListener processCompleteListener;
+
+    @Autowired
+    SpringProcessEngineConfiguration engineConfiguration;
+
+    @Override
+    public void configure(SpringProcessEngineConfiguration engineConfiguration) {
+        engineConfiguration.setActivityFontName("宋体");
+        engineConfiguration.setLabelFontName("宋体");
+        engineConfiguration.setAnnotationFontName("宋体");
+        engineConfiguration.setIdGenerator(new DbIdGenerator());
+        engineConfiguration.setCreateDiagramOnDeploy(true);
+        engineConfiguration.setDisableIdmEngine(true);
+        engineConfiguration.setExpressionManager(new SpringExpressionManager(applicationContext, engineConfiguration.getBeans()));
+
+        // 设置流程监听器
+        Map<String, List<FlowableEventListener>> listenerMap = new HashMap<>(8);
+        listenerMap.put(FlowableEngineEventType.PROCESS_COMPLETED.name(), Collections.singletonList(processCompleteListener));
+        listenerMap.put(FlowableEngineEventType.PROCESS_STARTED.name(), Collections.singletonList(processStartListener));
+
+
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+
+        FlowableEventDispatcher dispatcher = engineConfiguration.getEventDispatcher();
+
+        FlowableEventListener globalTaskListener = new FlowableEventListener() {
+            @Override
+            public void onEvent(FlowableEvent flowableEvent) {
+
+                log.info("global {}", flowableEvent);
+            }
+
+            @Override
+            public boolean isFailOnException() {
+                return false;
+            }
+
+            @Override
+            public boolean isFireOnTransactionLifecycleEvent() {
+                return false;
+            }
+
+            @Override
+            public String getOnTransaction() {
+                return null;
+            }
+        };
+        dispatcher.addEventListener(globalTaskListener, FlowableEngineEventType.PROCESS_COMPLETED);
+        dispatcher.addEventListener(globalTaskListener, FlowableEngineEventType.TASK_COMPLETED);
+        dispatcher.addEventListener(globalTaskListener, FlowableEngineEventType.TASK_CREATED);
+
+    }
+}
