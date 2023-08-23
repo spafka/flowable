@@ -1,11 +1,9 @@
 package io.github.spafka.flowable;
 
+import liquibase.pro.packaged.S;
 import org.flowable.bpmn.converter.BpmnXMLConverter;
-import org.flowable.bpmn.model.BpmnModel;
-import org.flowable.bpmn.model.FlowElement;
+import org.flowable.bpmn.model.*;
 import org.flowable.bpmn.model.Process;
-import org.flowable.bpmn.model.SequenceFlow;
-import org.flowable.bpmn.model.UserTask;
 import org.flowable.common.engine.api.io.InputStreamProvider;
 import org.junit.jupiter.api.Test;
 
@@ -13,10 +11,20 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class Tops {
 
+    class TopologyNode<T> {
+        T node;
+        List<TopologyNode<T>> next = new ArrayList<>();
+        List<TopologyNode<T>> pre = new ArrayList<>();
+
+        public TopologyNode(T node) {
+            this.node = node;
+        }
+    }
 
     @Test
     public void buildGate() {
@@ -179,9 +187,24 @@ public class Tops {
 
         Collection<FlowElement> flowElements = process.getFlowElements();
 
-        List<FlowElement> seq = flowElements.stream().filter(x -> x instanceof SequenceFlow).collect(Collectors.toList());
+
+        Map<String, FlowElement> collect1 = flowElements.stream().collect(Collectors.toMap(x -> x.getId(), x -> x));
+
+        List<SequenceFlow> seq = flowElements.stream().filter(x -> x instanceof SequenceFlow).map(x -> (SequenceFlow) x).collect(Collectors.toList());
         flowElements.removeAll(seq);
         List<FlowElement> collect = flowElements.stream().collect(Collectors.toList());
+        FlowElement start = collect.stream().filter(x -> x instanceof StartEvent).findFirst().get();
+        TopologyNode<FlowElement> root = new TopologyNode<>(start);
+
+        Map<String, TopologyNode<FlowElement>> cache = new HashMap<>();
+        cache.put(start.getId(), root);
+
+        seq.forEach(x -> {
+            TopologyNode<FlowElement> source = cache.computeIfAbsent(x.getSourceRef(),s-> new TopologyNode<>(collect1.get(s)));
+            TopologyNode<FlowElement> target = cache.computeIfAbsent(x.getTargetRef(),s-> new TopologyNode<>(collect1.get(s)));
+            source.next.add(target);
+            target.pre.add(source);
+        });
 
         System.out.println();
     }
@@ -335,46 +358,5 @@ public class Tops {
 
     }
 
-    class TopologyNode {
-        private String id;
-        private String name;
-        private List<io.github.spafka.flowable.TopologyNode> nextNodes;
-        private List<io.github.spafka.flowable.TopologyNode> preNodes;
 
-        public TopologyNode(String id, String name) {
-            this.id = id;
-            this.name = name;
-            this.nextNodes = new ArrayList<>();
-            this.preNodes = new ArrayList<>();
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public List<io.github.spafka.flowable.TopologyNode> getNextNodes() {
-            return nextNodes;
-        }
-
-        public List<io.github.spafka.flowable.TopologyNode> getPreNodes() {
-            return preNodes;
-        }
-
-        public void addNextNode(io.github.spafka.flowable.TopologyNode node) {
-            nextNodes.add(node);
-        }
-
-        public void addPreNode(io.github.spafka.flowable.TopologyNode node) {
-            preNodes.add(node);
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
 }
