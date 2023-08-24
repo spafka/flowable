@@ -2,6 +2,7 @@ package io.github.spafka.flowable;
 
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.core.FlowableUtils;
+import lombok.var;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
@@ -50,6 +51,62 @@ public class GaralGatewayRollbackTests {
     FlowService flowService;
 
     String processName = "并行网关驳回";
+
+    static int i = 0;
+
+
+    @Test //error
+    public void _1() {
+        deploy();
+        submit();
+        complete("ls");
+        complete("ww");
+        complete("ls");
+        complete("ww");
+
+        show(null);
+        taskReturn(null, "ls11");
+        complete("ls");
+        complete("ww");
+        debug();
+        show(null);
+        debug();
+        complete("whf");
+        show(null);
+
+    }
+
+    @Test //error
+    public void _2() {
+        deploy();
+        submit();
+        complete("ls");
+        complete("ww");
+        complete("ls");
+        complete("ww");
+
+        show(null);
+        taskReturn(null, "initiator1");
+        complete("whf");
+        complete("ls");
+        complete("ww");
+        complete("ww");
+        complete("ls");
+
+        show(null);
+
+        debug();
+        complete("whf");
+
+        complete("ls");
+        complete("ww");
+
+        show(null);
+
+        complete("zl");
+        System.out.println();
+
+    }
 
 
     @Test
@@ -135,10 +192,9 @@ public class GaralGatewayRollbackTests {
                 .taskAssignee(user)
                 .processDefinitionName(processName)
                 .list();
+        Task task1 = list.get(0);
+        taskService.complete(task1.getId(), taskService.getVariables(task1.getId()));
 
-        for (Task task : list) {
-            taskService.complete(task.getId(), taskService.getVariables(task.getId()));
-        }
 
         System.out.println("list = " + list);
 
@@ -150,7 +206,9 @@ public class GaralGatewayRollbackTests {
         List<Task> all = taskService.createTaskQuery()
                 .processDefinitionName(processName)
                 .list();
-        show(all.get(0).getProcessInstanceId());
+        Task task = all.get(0);
+        String processInstanceId = task.getProcessInstanceId();
+        show(processInstanceId);
 
 
         List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
@@ -158,6 +216,7 @@ public class GaralGatewayRollbackTests {
                 .orderByHistoricActivityInstanceStartTime()
                 .asc()
                 .list();
+
 
         System.out.println(all);
     }
@@ -172,11 +231,11 @@ public class GaralGatewayRollbackTests {
     }
 
     @Test
-    public void infect() {
-        List<Task> all = taskService.createTaskQuery()
+    public void back() {
+        List<ProcessDefinition> all = repositoryService.createProcessDefinitionQuery()
                 .processDefinitionName(processName)
                 .list();
-        BpmnModel bpmnModel = repositoryService.getBpmnModel(all.get(0).getProcessDefinitionId());
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(all.get(0).getId());
 
         Process process = bpmnModel.getProcesses().get(0);
 
@@ -205,29 +264,44 @@ public class GaralGatewayRollbackTests {
 
             }
         });
-
-        List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
-                .processInstanceId(all.get(0).getProcessInstanceId())
-                .orderByHistoricActivityInstanceStartTime()
-                .asc()
-                .list();
-
-        historicActivityInstances.forEach(x -> {
-            cache.get(x.getActivityId()).ts = x.getEndTime() == null ? 0 : x.getEndTime().getTime();
-        });
+//
+//        List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
+//                .processInstanceId(all.get(0).getProcessInstanceId())
+//                .orderByHistoricActivityInstanceStartTime()
+//                .asc()
+//                .list();
+//
+//        historicActivityInstances.forEach(x -> {
+//            cache.get(x.getActivityId()).ts = x.getEndTime() == null ? 0 : x.getEndTime().getTime();
+//        });
 
         System.out.println();
     }
 
 
     public void show(String processInstanceId) {
-        InputStream diagram = flowService.diagram(processInstanceId);
-        try {
-            OutputStream output = Files.newOutputStream(new File(processName + ".png").toPath());
-            IOUtils.copy(diagram, output);
-            output.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (processInstanceId != null) {
+            InputStream diagram = flowService.diagram(processInstanceId);
+            try {
+                OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
+                IOUtils.copy(diagram, output);
+                output.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            List<Task> all = taskService.createTaskQuery()
+                    .processDefinitionName(processName)
+                    .list();
+            processInstanceId = all.get(0).getProcessInstanceId();
+            InputStream diagram = flowService.diagram(processInstanceId);
+            try {
+                OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
+                IOUtils.copy(diagram, output);
+                output.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
 
@@ -236,7 +310,7 @@ public class GaralGatewayRollbackTests {
     public void showDiagram(String processInstanceId) {
         InputStream diagram = flowService.diagram(processInstanceId);
         try {
-            OutputStream output = Files.newOutputStream(new File(processName + ".png").toPath());
+            OutputStream output = Files.newOutputStream(new File(processName + (i++) + ".png").toPath());
             IOUtils.copy(diagram, output);
             output.flush();
         } catch (IOException e) {
@@ -266,6 +340,12 @@ public class GaralGatewayRollbackTests {
     }
 
     public void taskReturn(Task task, String toId) {
+        if (task == null) {
+            List<Task> all = taskService.createTaskQuery()
+                    .processDefinitionName(processName)
+                    .list();
+            task = all.get(0);
+        }
         // 当前任务 task
         if (Objects.isNull(task)) {
             throw new RuntimeException("获取任务信息异常！");
