@@ -10,6 +10,7 @@ import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.image.ProcessDiagramGenerator;
+import org.flowable.image.impl.DefaultProcessDiagramGenerator;
 import org.flowable.task.api.Task;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -66,7 +67,7 @@ public class FlowService {
         // 可回退的节点列表
         List<UserTask> userTaskList = new ArrayList<>();
         for (List<UserTask> road : roads) {
-            if (userTaskList.size() == 0) {
+            if (userTaskList.isEmpty()) {
                 // 还没有可回退节点直接添加
                 userTaskList = road;
             } else {
@@ -119,9 +120,48 @@ public class FlowService {
         BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
         ProcessEngineConfiguration configuration = processEngine.getProcessEngineConfiguration();
         //获取自定义图片生成器
-        ProcessDiagramGenerator diagramGenerator = new CustomProcessDiagramGenerator();
+        ProcessDiagramGenerator diagramGenerator = new DefaultProcessDiagramGenerator();
         return diagramGenerator.generateDiagram(bpmnModel, "png", highLightedNodes, highLightedFlows, configuration.getActivityFontName(),
                 configuration.getLabelFontName(), configuration.getAnnotationFontName(), configuration.getClassLoader(), 1.0, true);
 
     }
+
+//    public void rollbackToNode(String processInstanceId, String targetNodeId) {
+//        // 获取当前流程实例的历史活动记录
+//        List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
+//                .processInstanceId(processInstanceId)
+//                .orderByHistoricActivityInstanceStartTime()
+//                .asc()
+//                .list();
+//
+//        // 确定要回退到的目标节点
+//        HistoricActivityInstance targetNode = null;
+//        for (HistoricActivityInstance historicActivityInstance : historicActivityInstances) {
+//            if (historicActivityInstance.getActivityId().equals(targetNodeId)) {
+//                targetNode = historicActivityInstance;
+//                break;
+//            }
+//        }
+//
+//        if (targetNode != null) {
+//            // 执行回退操作
+//            String currentActivityId = taskService.createTaskQuery()
+//                    .processInstanceId(processInstanceId)
+//                    .singleResult()
+//                    .getTaskDefinitionKey();
+//
+//            ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
+//                    .processInstanceId(processInstanceId)
+//                    .singleResult();
+//
+//            if (processInstance != null && processInstance.isSuspended() && processInstance.getActivityId().equals(currentActivityId)) {
+//                runtimeService.activateProcessInstanceById(processInstanceId);
+//            }
+//
+//            runtimeService.createProcessInstanceModification(processInstanceId)
+//                    .cancelActivityInstance(currentActivityId)
+//                    .startBeforeActivity(targetNode.getActivityId())
+//                    .execute();
+//        }
+//    }
 }
