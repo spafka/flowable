@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TopologyNode<T extends FlowElement> {
-    T node;
-    List<TopologyNode<T>> next = new ArrayList<>();
-    List<TopologyNode<T>> pre = new ArrayList<>();
+    public T node;
+    public List<TopologyNode<T>> next = new ArrayList<>();
+    public List<TopologyNode<T>> pre = new ArrayList<>();
 
     long ts;
 

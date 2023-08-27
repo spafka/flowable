@@ -1,8 +1,8 @@
-package io.github.spafka.flowable;
+package io.github.spafka.flowable.sb;
 
+import io.github.spafka.flowable.TopologyNode;
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.core.FlowableUtils;
-import lombok.var;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
@@ -16,7 +16,6 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.flowable.task.service.impl.persistence.entity.TaskEntityImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,10 +29,11 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SpringBootTest
-public class GaralGatewayRollbackTests {
-    private static final String key = "paralGateway";
+public class SubProcessRollbackTests {
+    private static final String key = "subProcess";
 
     @Autowired
     DataSource dataSource;
@@ -50,7 +50,7 @@ public class GaralGatewayRollbackTests {
     @Autowired
     FlowService flowService;
 
-    String processName = "并行网关驳回";
+    String processName = "嵌套子流程";
 
     static int i = 0;
 
@@ -59,20 +59,8 @@ public class GaralGatewayRollbackTests {
     public void _1() {
         deploy();
         submit();
-        complete("ls");
-        complete("ww");
-        complete("ls");
-        complete("ww");
 
-        show(null);
-        taskReturn(null, "ls11");
-        complete("ls");
-        complete("ww");
-        debug();
-        show(null);
-        debug();
-        complete("whf");
-        show(null);
+        System.out.println();
 
     }
 
@@ -112,7 +100,7 @@ public class GaralGatewayRollbackTests {
     @Test
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()// 创建Deployment对象
-                .addClasspathResource("bpmn/paralGateway.bpmn20.xml") // 添加流程部署文件
+                .addClasspathResource("bpmn/subProcessRuo.bpmn20.xml") // 添加流程部署文件
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -217,6 +205,10 @@ public class GaralGatewayRollbackTests {
                 .asc()
                 .list();
 
+        all.forEach(x -> {
+            System.out.printf("Task[id= %s , name= %s user=%s", x.getId(), x.getName(), x.getAssignee());
+        });
+
 
         System.out.println(all);
     }
@@ -239,7 +231,14 @@ public class GaralGatewayRollbackTests {
 
         Process process = bpmnModel.getProcesses().get(0);
 
-        Collection<FlowElement> flowElements = process.getFlowElements();
+        Collection<FlowElement> flowElements = process.getFlowElements().stream().flatMap(x -> {
+            if (x instanceof SubProcess) {
+                Collection<FlowElement> flowElements1 = ((SubProcess) x).getFlowElements();
+                return Stream.concat(Stream.of(x), flowElements1.stream());
+            }else {
+                return Stream.of(x);
+            }
+        }).collect(Collectors.toList());
 
 
         Map<String, FlowElement> idMap = flowElements.stream().collect(Collectors.toMap(BaseElement::getId, x -> x));
