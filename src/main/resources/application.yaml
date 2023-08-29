@@ -3,7 +3,11 @@ logging:
     org.springframework: warn
     org.flowable.engine.impl.persistence.entity.*: info
     org.flowable.task.service.impl.persistence.entity.*: info
-
+middol:
+  bpm2:
+    new-process-engine-config: true
+    database-schema-update: true
+    async-executor-activate: false
 
 spring:
   output:

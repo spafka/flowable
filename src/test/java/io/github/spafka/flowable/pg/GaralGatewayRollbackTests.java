@@ -1,5 +1,6 @@
 package io.github.spafka.flowable.pg;
 
+import io.github.spafka.flowable.FlowBase;
 import io.github.spafka.flowable.TopologyNode;
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.core.FlowableUtils;
@@ -33,7 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-public class GaralGatewayRollbackTests {
+public class GaralGatewayRollbackTests extends FlowBase {
     private static final String key = "paralGateway";
 
     @Autowired
@@ -233,50 +234,9 @@ public class GaralGatewayRollbackTests {
 
     @Test
     public void back() {
-        List<ProcessDefinition> all = repositoryService.createProcessDefinitionQuery()
-                .processDefinitionName(processName)
-                .list();
-        BpmnModel bpmnModel = repositoryService.getBpmnModel(all.get(0).getId());
 
-        Process process = bpmnModel.getProcesses().get(0);
+        diagram(repositoryService, processName);
 
-        Collection<FlowElement> flowElements = process.getFlowElements();
-
-
-        Map<String, FlowElement> idMap = flowElements.stream().collect(Collectors.toMap(BaseElement::getId, x -> x));
-
-
-        FlowElement start = flowElements.stream().filter(x -> x instanceof StartEvent).findFirst().get();
-        TopologyNode<FlowElement> root = new TopologyNode<>(start);
-
-        Map<String, TopologyNode<FlowElement>> cache = new HashMap<>();
-        cache.put(start.getId(), root);
-
-        flowElements.forEach(x -> {
-            if (x instanceof SequenceFlow) {
-                TopologyNode<FlowElement> source = cache.computeIfAbsent(((SequenceFlow) x).getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
-                TopologyNode<FlowElement> target = cache.computeIfAbsent(((SequenceFlow) x).getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
-                TopologyNode thiS = cache.computeIfAbsent(x.getId(), s -> new TopologyNode<>(idMap.get(s)));
-                thiS.pre.add(source);
-                source.next.add(target);
-                target.pre.add(thiS);
-                thiS.next.add(target);
-            } else {
-
-            }
-        });
-//
-//        List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
-//                .processInstanceId(all.get(0).getProcessInstanceId())
-//                .orderByHistoricActivityInstanceStartTime()
-//                .asc()
-//                .list();
-//
-//        historicActivityInstances.forEach(x -> {
-//            cache.get(x.getActivityId()).ts = x.getEndTime() == null ? 0 : x.getEndTime().getTime();
-//        });
-
-        System.out.println();
     }
 
 
