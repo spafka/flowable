@@ -1,19 +1,22 @@
 package io.github.spafka.flowable.core;
 
-import org.flowable.bpmn.model.BpmnModel;
-import org.flowable.bpmn.model.FlowElement;
+import org.flowable.bpmn.constants.BpmnXMLConstants;
+import org.flowable.bpmn.model.*;
 import org.flowable.bpmn.model.Process;
-import org.flowable.bpmn.model.UserTask;
 import org.flowable.engine.*;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.image.impl.DefaultProcessDiagramGenerator;
 import org.flowable.task.api.Task;
+import org.flowable.task.service.impl.persistence.entity.TaskEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.InputStream;
@@ -22,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class FlowService {
@@ -42,6 +46,9 @@ public class FlowService {
 
     @Resource
     protected TaskService taskService;
+    @Autowired
+    ManagementService managementService;
+
     public List<UserTask> findReturnTaskList(String taskId) {
         // 当前任务 task
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
@@ -164,4 +171,42 @@ public class FlowService {
 //                    .execute();
 //        }
 //    }
+
+
+    public List<FlowNode> getBackNodes(String taskId) {
+        TaskEntity taskEntity = (TaskEntity) taskService.createTaskQuery().taskId(taskId).singleResult();
+
+        String processInstanceId = taskEntity.getProcessInstanceId();
+        String currActId = taskEntity.getTaskDefinitionKey();
+        String processDefinitionId = taskEntity.getProcessDefinitionId();
+        Process process = repositoryService.getBpmnModel(processDefinitionId).getMainProcess();
+        FlowNode currentFlowElement = (FlowNode) process.getFlowElement(currActId, true);
+        List<ActivityInstance> activitys =
+                runtimeService.createActivityInstanceQuery().processInstanceId(processInstanceId).finished().orderByActivityInstanceStartTime().asc().list();
+        List<String> activityIds =
+                activitys.stream().filter(activity -> activity.getActivityType().equals(BpmnXMLConstants.ELEMENT_TASK_USER)).filter(activity -> !activity.getActivityId().equals(currActId)).map(ActivityInstance::getActivityId).distinct().collect(Collectors.toList());
+        List<FlowNode> result = new ArrayList<>();
+        for (String activityId : activityIds) {
+            FlowNode toBackFlowElement = (FlowNode) process.getFlowElement(activityId, true);
+            if (FlowableUtils.isReachable(process, toBackFlowElement, currentFlowElement)) {
+
+                result.add(toBackFlowElement);
+            }
+        }
+        return result;
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public void backTask(String taskId, String to) {
+        Task task = (TaskEntity) taskService.createTaskQuery().taskId(taskId).singleResult();
+
+        String targetRealActivityId = managementService.executeCommand(new BackUserTaskCmd(runtimeService,
+                taskId, to));
+        // 退回发起者处理,退回到发起者,默认设置任务执行人为发起者
+
+
+    }
+
+
 }

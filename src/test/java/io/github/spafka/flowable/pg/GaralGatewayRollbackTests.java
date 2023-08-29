@@ -1,13 +1,13 @@
 package io.github.spafka.flowable.pg;
 
 import io.github.spafka.flowable.FlowBase;
-import io.github.spafka.flowable.TopologyNode;
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.core.FlowableUtils;
-import lombok.var;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
+import org.flowable.bpmn.converter.BpmnXMLConverter;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
 import org.flowable.common.engine.api.FlowableException;
@@ -18,7 +18,11 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.flowable.task.service.impl.persistence.entity.TaskEntityImpl;
+import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +35,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @SpringBootTest
 public class GaralGatewayRollbackTests extends FlowBase {
@@ -66,15 +69,23 @@ public class GaralGatewayRollbackTests extends FlowBase {
         complete("ls");
         complete("ww");
 
-        show(null);
-        taskReturn(null, "ls11");
-        complete("ls");
-        complete("ww");
-        debug();
-        show(null);
-        debug();
-        complete("whf");
-        show(null);
+        List<FlowNode> flowNodes = listCanRetuen(null);
+
+        for (FlowNode flowNode : flowNodes) {
+            System.out.println(flowNode.getId());
+        }
+
+        System.out.println();
+
+//        show(null);
+//        taskReturn(null, "ls11");
+//        complete("ls");
+//        complete("ww");
+//        debug();
+//        show(null);
+//        debug();
+//        complete("whf");
+//        show(null);
 
     }
 
@@ -300,6 +311,29 @@ public class GaralGatewayRollbackTests extends FlowBase {
         }
     }
 
+    public List<FlowNode> listCanRetuen(Task task) {
+        if (task == null) {
+            List<Task> all = taskService.createTaskQuery()
+                    .processDefinitionName(processName)
+                    .list();
+            task = all.get(0);
+        }
+        List<FlowNode> backNodes = flowService.getBackNodes(task.getId());
+
+        return backNodes;
+    }
+
+    public void justReturn(Task task, String to) {
+        if (task == null) {
+            List<Task> all = taskService.createTaskQuery()
+                    .processDefinitionName(processName)
+                    .list();
+            task = all.get(0);
+        }
+
+        flowService.backTask(task.getId(), to);
+    }
+
     public void taskReturn(Task task, String toId) {
         if (task == null) {
             List<Task> all = taskService.createTaskQuery()
@@ -374,6 +408,81 @@ public class GaralGatewayRollbackTests extends FlowBase {
         } catch (FlowableException e) {
             throw new RuntimeException("无法取消或开始活动");
         }
+
+    }
+
+
+    @Test
+    public void jq() {
+        BpmnModel model = new BpmnXMLConverter().convertToBpmnModel(() -> {
+            try {
+                return FileUtils.openInputStream(new File("src/main/resources/bpmn/paralGateway.bpmn20.xml"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, false, false);
+        Graph<String, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
+
+        // 遍历BpmnModel对象，将节点和连线添加到Graph对象
+        for (Process bpmnProcess : model.getProcesses()) {
+            Collection<FlowElement> flowElements = bpmnProcess.getFlowElements();
+            for (FlowElement flowElement : flowElements) {
+                if (flowElement instanceof SequenceFlow) {
+                    SequenceFlow sequenceFlow = (SequenceFlow) flowElement;
+                    String sourceRef = sequenceFlow.getSourceRef();
+                    String targetRef = sequenceFlow.getTargetRef();
+                    graph.addVertex(sourceRef);
+                    graph.addVertex(targetRef);
+                    graph.addEdge(sourceRef, targetRef);
+                } else {
+                    graph.addVertex(flowElement.getId());
+                }
+            }
+        }
+
+        // 遍历节点
+        Set<String> vertices = graph.vertexSet();
+        System.out.println("Nodes:");
+        for (String vertex : vertices) {
+            System.out.println(vertex);
+        }
+
+        // 查询路径
+        System.out.println("\nShortest Path:");
+        String headNode = null;
+        String end = null;
+
+        Set<String> verticess = graph.vertexSet();
+        for (String vertex : verticess) {
+            if (graph.inDegreeOf(vertex) == 0) {
+                headNode = vertex;
+                break;
+            }
+        }
+
+        for (String vertex : verticess) {
+            if (graph.outDegreeOf(vertex) == 0) {
+                end = vertex;
+                break;
+            }
+        }
+
+        GraphPath<String, DefaultEdge> shortestPath;
+        shortestPath = DijkstraShortestPath.findPathBetween(graph, headNode, end);
+
+
+        System.out.println();
+    }
+
+    @Test
+    public void Test() {
+        BpmnModel model = new BpmnXMLConverter().convertToBpmnModel(() -> {
+            try {
+                return FileUtils.openInputStream(new File("src/main/resources/bpmn/testPg.bpmn20.xml"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, false, false);
 
     }
 
