@@ -11,9 +11,12 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.junit.jupiter.api.Test;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -22,10 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
+ */
 @SpringBootTest
-public class holidayReturnTest extends FlowBase {
+@RunWith(value = SpringRunner.class)
+public class PallergateTests extends FlowBase {
 
-    private static final String key = "LeaveApplication";
+    private static final String key = "pg01";
 
     @Autowired
     DataSource dataSource;
@@ -42,14 +49,14 @@ public class holidayReturnTest extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "请假申请";
+    String processName = "复杂并行网关";
 
     static int i = 0;
 
     @Test
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/请假申请.bpmn20.xml")
+                .addClasspathResource("returntest/复杂并行网关.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -74,6 +81,8 @@ public class holidayReturnTest extends FlowBase {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("days", 3);
+        variables.put("initiator", "whf");
+
         variables.put("status", "approve");
         variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
 
@@ -89,38 +98,7 @@ public class holidayReturnTest extends FlowBase {
             }
         }
 
-
     }
-
-
-
-    @Test
-    public void back() {
-
-        diagram(repositoryService, processName);
-
-    }
-
-
-    public void _1(String processInstanceId) {
-
-        List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
-                .processInstanceId(processInstanceId)
-                .orderByHistoricActivityInstanceStartTime()
-                .asc()
-                .list();
-
-        // 确定要回退到的目标节点
-        HistoricActivityInstance targetNode = null;
-        for (HistoricActivityInstance historicActivityInstance : historicActivityInstances) {
-            if (historicActivityInstance.getActivityId().equals(targetNode)) {
-                targetNode = historicActivityInstance;
-                break;
-            }
-        }
-    }
-
-
 
 
     @Test

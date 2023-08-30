@@ -16,7 +16,7 @@ spring:
     ansi:
       enabled: always
   profiles:
-    active: h2
+    active: mysql
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver

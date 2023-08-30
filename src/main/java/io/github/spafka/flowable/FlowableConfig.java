@@ -80,7 +80,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
             @Override
             public void onEvent(FlowableEvent flowableEvent) {
 
-                log.info("global {}", flowableEvent);
+                log.info("全局监听器 {}", flowableEvent);
             }
 
             @Override

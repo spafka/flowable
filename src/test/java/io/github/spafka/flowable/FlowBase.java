@@ -1,6 +1,7 @@
 package io.github.spafka.flowable;
 
 import io.github.spafka.flowable.core.FlowService;
+import io.github.spafka.flowable.service.FlowNodeDto;
 import org.apache.commons.io.IOUtils;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
@@ -11,6 +12,7 @@ import org.flowable.engine.TaskService;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.task.api.Task;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -37,6 +39,7 @@ public class FlowBase {
     @Autowired
     FlowService flowService;
 
+
     public void diagram(RepositoryService repositoryService, String processName) {
 
 
@@ -58,7 +61,7 @@ public class FlowBase {
 
     }
 
-    public void list() {
+    public void debug() {
         List<org.flowable.task.api.Task> all = taskService.createTaskQuery()
                 .list();
         Task task = all.get(0);
@@ -92,7 +95,44 @@ public class FlowBase {
         Task task1 = list.get(0);
         taskService.complete(task1.getId(), taskService.getVariables(task1.getId()));
 
-        list();
+
+    }
+
+    public void complete(String user, String taskName) {
+
+        List<Task> list = taskService.createTaskQuery()
+                .taskAssignee(user)
+                .list();
+        list.stream().filter(x -> x.getName().equals(taskName)).forEach(x -> {
+            taskService.complete(x.getId(), taskService.getVariables(x.getId()));
+
+        });
+
+
+    }
+
+    public List<FlowNodeDto> listCanRetuen(Task task) {
+        if (task == null) {
+            List<Task> all = taskService.createTaskQuery()
+
+                    .list();
+            task = all.get(0);
+        }
+        List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
+
+        backNodes.forEach(x -> {
+            System.out.printf("can back %s %s %s", x.getId(), x.getName(), "\n");
+        });
+
+        return backNodes;
+    }
+
+    public void return2Node(String to) {
+        Task task = null;
+        List<Task> all = taskService.createTaskQuery()
+                .list();
+        task = all.get(0);
+        flowService.backTask(task.getId(), to);
 
     }
 }
