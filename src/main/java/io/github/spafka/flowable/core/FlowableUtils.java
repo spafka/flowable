@@ -2,8 +2,8 @@ package io.github.spafka.flowable.core;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.flowable.bpmn.model.*;
 import org.flowable.bpmn.model.Process;
+import org.flowable.bpmn.model.*;
 import org.flowable.common.engine.api.FlowableException;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.impl.bpmn.behavior.ParallelMultiInstanceBehavior;

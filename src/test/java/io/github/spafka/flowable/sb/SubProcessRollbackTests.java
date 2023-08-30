@@ -1,14 +1,14 @@
 package io.github.spafka.flowable.sb;
 
 import io.github.spafka.flowable.FlowBase;
-import io.github.spafka.flowable.TopologyNode;
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.core.FlowableUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
+import org.flowable.bpmn.model.FlowElement;
 import org.flowable.bpmn.model.Process;
-import org.flowable.bpmn.model.*;
+import org.flowable.bpmn.model.UserTask;
 import org.flowable.common.engine.api.FlowableException;
 import org.flowable.common.engine.api.FlowableObjectNotFoundException;
 import org.flowable.engine.*;
@@ -29,8 +29,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @SpringBootTest
 public class SubProcessRollbackTests extends FlowBase {

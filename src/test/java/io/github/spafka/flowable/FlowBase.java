@@ -1,15 +1,41 @@
 package io.github.spafka.flowable;
 
-import org.flowable.bpmn.model.*;
+import io.github.spafka.flowable.core.FlowService;
+import org.apache.commons.io.IOUtils;
 import org.flowable.bpmn.model.Process;
+import org.flowable.bpmn.model.*;
+import org.flowable.engine.HistoryService;
 import org.flowable.engine.RepositoryService;
+import org.flowable.engine.RuntimeService;
+import org.flowable.engine.TaskService;
+import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.task.api.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FlowBase {
+
+    int i = 0;
+
+    String processName = "s";
+
+    @Autowired
+    RuntimeService runtimeService;
+    @Autowired
+    TaskService taskService;
+    @Autowired
+    HistoryService historyService;
+    @Autowired
+    FlowService flowService;
 
     public void diagram(RepositoryService repositoryService, String processName) {
 
@@ -29,48 +55,44 @@ public class FlowBase {
                 return Stream.of(x);
             }
         }).collect(Collectors.toList());
-        ;
 
+    }
 
-        Map<String, FlowElement> idMap = flowElements.stream().collect(Collectors.toMap(BaseElement::getId, x -> x));
+    public void list() {
+        List<org.flowable.task.api.Task> all = taskService.createTaskQuery()
+                .list();
+        Task task = all.get(0);
+        String processInstanceId = task.getProcessInstanceId();
+        show();
 
+        all.forEach(x -> System.out.println(String.format("Task[id=%s,name=%s,assignee=%s]", x.getId(), x.getName(), x.getAssignee())));
+    }
 
-        FlowElement start = flowElements.stream().filter(x -> x instanceof StartEvent).findFirst().get();
-        TopologyNode<FlowElement> root = new TopologyNode<>(start);
+    public void show() {
 
-        Map<String, TopologyNode<FlowElement>> cache = new HashMap<>();
-        cache.put(start.getId(), root);
-
-        flowElements.forEach(x -> {
-            if (x instanceof SequenceFlow) {
-                TopologyNode<FlowElement> source = cache.computeIfAbsent(((SequenceFlow) x).getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
-                TopologyNode<FlowElement> target = cache.computeIfAbsent(((SequenceFlow) x).getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
-                TopologyNode thiS = cache.computeIfAbsent(x.getId(), s -> new TopologyNode<>(idMap.get(s)));
-                thiS.pre.add(source);
-                source.next.add(thiS);
-                target.pre.add(thiS);
-                thiS.next.add(target);
-            } else {
-
-            }
-        });
-
-        TopologyNode<FlowElement> end = cache.get("Event_06lk902");
-
-
-        ArrayDeque<TopologyNode<FlowElement>> flowElements1 = new ArrayDeque<>();
-
-
-        LinkedList<FlowElement> path = new LinkedList<>();
-        while (end.pre != null && !end.pre.isEmpty()) {
-            path.addFirst(end.node);
-            end = end.pre.get(0);
+        String processInstanceId = null;
+        List<Task> all = taskService.createTaskQuery()
+                .list();
+        processInstanceId = all.get(0).getProcessInstanceId();
+        InputStream diagram = flowService.diagram(processInstanceId);
+        try {
+            OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
+            IOUtils.copy(diagram, output);
+            output.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        path.addFirst(end.node);
+    }
 
-        List<FlowElement> collect = path.stream().filter(x -> !(x instanceof SequenceFlow)).collect(Collectors.toList());
+    public void complete(String user) {
 
+        List<Task> list = taskService.createTaskQuery()
+                .taskAssignee(user)
+                .list();
+        Task task1 = list.get(0);
+        taskService.complete(task1.getId(), taskService.getVariables(task1.getId()));
 
-        System.out.println();
+        list();
+
     }
 }

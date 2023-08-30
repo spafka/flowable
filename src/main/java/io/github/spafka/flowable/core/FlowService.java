@@ -1,31 +1,24 @@
 package io.github.spafka.flowable.core;
 
-import org.flowable.bpmn.constants.BpmnXMLConstants;
+import io.github.spafka.flowable.service.BpmnService;
+import io.github.spafka.flowable.service.FlowNodeDto;
+import io.github.spafka.flowable.service.ReturnService;
 import org.flowable.bpmn.model.*;
-import org.flowable.bpmn.model.Process;
 import org.flowable.engine.*;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
-import org.flowable.engine.repository.ProcessDefinition;
-import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.image.ProcessDiagramGenerator;
-import org.flowable.image.impl.DefaultProcessDiagramGenerator;
-import org.flowable.task.api.Task;
-import org.flowable.task.service.impl.persistence.entity.TaskEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class FlowService {
@@ -49,41 +42,13 @@ public class FlowService {
     @Autowired
     ManagementService managementService;
 
-    public List<UserTask> findReturnTaskList(String taskId) {
-        // 当前任务 task
-        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
-        // 获取流程定义信息
-        ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(task.getProcessDefinitionId()).singleResult();
-        // 获取所有节点信息，暂不考虑子流程情况
-        Process process = repositoryService.getBpmnModel(processDefinition.getId()).getProcesses().get(0);
-        Collection<FlowElement> flowElements = process.getFlowElements();
-        // 获取当前任务节点元素
-        UserTask source = null;
-        if (flowElements != null) {
-            for (FlowElement flowElement : flowElements) {
-                // 类型为用户节点
-                if (flowElement.getId().equals(task.getTaskDefinitionKey())) {
-                    source = (UserTask) flowElement;
-                }
-            }
-        }
+    @Autowired
+    @Lazy
+    ReturnService returnService;
 
+    @Autowired
+    BpmnService bpmnService;
 
-        // 获取节点的所有路线
-        List<List<UserTask>> roads = FlowableUtils.findRoad(source, null, null, null);
-        // 可回退的节点列表
-        List<UserTask> userTaskList = new ArrayList<>();
-        for (List<UserTask> road : roads) {
-            if (userTaskList.isEmpty()) {
-                // 还没有可回退节点直接添加
-                userTaskList = road;
-            } else {
-                // 如果已有回退节点，则比对取交集部分
-                userTaskList.retainAll(road);
-            }
-        }
-        return userTaskList;
-    }
 
     /**
      * 获取流程过程图
@@ -133,80 +98,16 @@ public class FlowService {
 
     }
 
-//    public void rollbackToNode(String processInstanceId, String targetNodeId) {
-//        // 获取当前流程实例的历史活动记录
-//        List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
-//                .processInstanceId(processInstanceId)
-//                .orderByHistoricActivityInstanceStartTime()
-//                .asc()
-//                .list();
-//
-//        // 确定要回退到的目标节点
-//        HistoricActivityInstance targetNode = null;
-//        for (HistoricActivityInstance historicActivityInstance : historicActivityInstances) {
-//            if (historicActivityInstance.getActivityId().equals(targetNodeId)) {
-//                targetNode = historicActivityInstance;
-//                break;
-//            }
-//        }
-//
-//        if (targetNode != null) {
-//            // 执行回退操作
-//            String currentActivityId = taskService.createTaskQuery()
-//                    .processInstanceId(processInstanceId)
-//                    .singleResult()
-//                    .getTaskDefinitionKey();
-//
-//            ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
-//                    .processInstanceId(processInstanceId)
-//                    .singleResult();
-//
-//            if (processInstance != null && processInstance.isSuspended() && processInstance.getActivityId().equals(currentActivityId)) {
-//                runtimeService.activateProcessInstanceById(processInstanceId);
-//            }
-//
-//            runtimeService.createProcessInstanceModification(processInstanceId)
-//                    .cancelActivityInstance(currentActivityId)
-//                    .startBeforeActivity(targetNode.getActivityId())
-//                    .execute();
-//        }
-//    }
+    public List<FlowNodeDto> getBackNodes(String id) {
 
-
-    public List<FlowNode> getBackNodes(String taskId) {
-        TaskEntity taskEntity = (TaskEntity) taskService.createTaskQuery().taskId(taskId).singleResult();
-
-        String processInstanceId = taskEntity.getProcessInstanceId();
-        String currActId = taskEntity.getTaskDefinitionKey();
-        String processDefinitionId = taskEntity.getProcessDefinitionId();
-        Process process = repositoryService.getBpmnModel(processDefinitionId).getMainProcess();
-        FlowNode currentFlowElement = (FlowNode) process.getFlowElement(currActId, true);
-        List<ActivityInstance> activitys =
-                runtimeService.createActivityInstanceQuery().processInstanceId(processInstanceId).finished().orderByActivityInstanceStartTime().asc().list();
-        List<String> activityIds =
-                activitys.stream().filter(activity -> activity.getActivityType().equals(BpmnXMLConstants.ELEMENT_TASK_USER)).filter(activity -> !activity.getActivityId().equals(currActId)).map(ActivityInstance::getActivityId).distinct().collect(Collectors.toList());
-        List<FlowNode> result = new ArrayList<>();
-        for (String activityId : activityIds) {
-            FlowNode toBackFlowElement = (FlowNode) process.getFlowElement(activityId, true);
-            if (FlowableUtils.isReachable(process, toBackFlowElement, currentFlowElement)) {
-
-                result.add(toBackFlowElement);
-            }
-        }
-        return result;
-    }
-
-
-    @Transactional(rollbackFor = Exception.class)
-    public void backTask(String taskId, String to) {
-        Task task = (TaskEntity) taskService.createTaskQuery().taskId(taskId).singleResult();
-
-        String targetRealActivityId = managementService.executeCommand(new BackUserTaskCmd(runtimeService,
-                taskId, to));
-        // 退回发起者处理,退回到发起者,默认设置任务执行人为发起者
+        return returnService.getCanRejectedFlowNode(bpmnService.getBpmnModelByFlowableTaskId(id), id, "");
 
 
     }
 
 
+    public void backTask(String id, String to) {
+
+        returnService.returnToTarget(id, to);
+    }
 }

@@ -10,6 +10,8 @@ middol:
     async-executor-activate: false
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
   output:
     ansi:
       enabled: always
