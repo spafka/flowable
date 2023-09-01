@@ -32,9 +32,6 @@ public class FlowableBpmProcessServiceImpl implements BpmProcessService {
 
     private RepositoryService repositoryService;
 
-    private FormService formService;
-
-
 
     private List<BpmTaskMinModelEntity> queryMinUserTasks(
             BpmTaskModelQuery query, Process process, ProcessDefinition processDefinition) {

@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.h2.Driver
     druid:
       #      url: jdbc:h2:mem:test  # 内存模式 ，test 为自定义的数据库名
-      url: jdbc:h2:file:./aa # 持久化保存的模式，保存文件的路径
+      url: jdbc:h2:mem:test # 持久化保存的模式，保存文件的路径
       password: h2 # 数据库的用户名，用于登录页面
       username: h2 # 数据库的密码，用于登录页面
 

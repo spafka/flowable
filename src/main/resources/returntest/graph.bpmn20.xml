@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://www.flowable.org/processdef">
+    <process id="myProcess" name="My Process" isExecutable="true">
+        <startEvent id="startEvent" name="Start Event">
+            <outgoing>flow1</outgoing>
+        </startEvent>
+
+        <parallelGateway id="parallelGateway" name="Parallel Gateway">
+            <incoming>flow1</incoming>
+            <outgoing>flow2</outgoing>
+            <outgoing>flow3</outgoing>
+        </parallelGateway>
+
+        <subProcess id="subProcess" name="Sub Process">
+            <startEvent id="subProcessStartEvent" name="Sub Process Start Event">
+                <outgoing>flow4</outgoing>
+            </startEvent>
+            <!-- 定义子流程的任务、网关等 -->
+            <!-- ... -->
+            <endEvent id="subProcessEndEvent" name="Sub Process End Event">
+                <incoming>flow5</incoming>
+            </endEvent>
+            <sequenceFlow id="flow4" sourceRef="subProcessStartEvent" targetRef="subProcessEndEvent"/>
+        </subProcess>
+
+        <inclusiveGateway id="inclusiveGateway" name="Inclusive Gateway">
+            <incoming>flow2</incoming>
+            <incoming>flow3</incoming>
+            <outgoing>flow5</outgoing>
+        </inclusiveGateway>
+
+        <endEvent id="endEvent" name="End Event">
+            <incoming>flow5</incoming>
+        </endEvent>
+
+        <sequenceFlow id="flow1" sourceRef="startEvent" targetRef="parallelGateway"/>
+        <sequenceFlow id="flow2" sourceRef="parallelGateway" targetRef="inclusiveGateway"/>
+        <sequenceFlow id="flow3" sourceRef="parallelGateway" targetRef="inclusiveGateway"/>
+        <sequenceFlow id="flow5" sourceRef="inclusiveGateway" targetRef="endEvent"/>
+
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_graph">
+        <bpmndi:BPMNPlane bpmnElement="graph" id="BPMNPlane_graph">
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

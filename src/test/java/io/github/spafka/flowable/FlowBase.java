@@ -111,13 +111,14 @@ public class FlowBase {
 
     }
 
-    public List<FlowNodeDto> listCanRetuen(Task task) {
-        if (task == null) {
-            List<Task> all = taskService.createTaskQuery()
+    public List<FlowNodeDto> listCanRetuen(String taskName) {
+        Task task;
 
-                    .list();
-            task = all.get(0);
-        }
+        List<Task> all = taskService.createTaskQuery()
+
+                .list();
+        task = all.stream().filter(x -> x.getName().equals(taskName) || Objects.isNull(taskName)).findFirst().get();
+
         List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
 
         backNodes.forEach(x -> {
