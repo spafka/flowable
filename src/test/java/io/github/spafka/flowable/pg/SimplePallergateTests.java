@@ -1,13 +1,10 @@
-package io.github.spafka.flowable.returnTests;
+package io.github.spafka.flowable.pg;
 
 import io.github.spafka.flowable.FlowBase;
 import io.github.spafka.flowable.core.FlowService;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
-import org.flowable.engine.ProcessEngine;
-import org.flowable.engine.RepositoryService;
-import org.flowable.engine.RuntimeService;
-import org.flowable.engine.TaskService;
+import org.flowable.engine.*;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
@@ -18,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,12 +26,14 @@ import java.util.Objects;
  */
 @SpringBootTest
 @RunWith(value = SpringRunner.class)
-public class Inclisive13Tests extends FlowBase {
+public class SimplePallergateTests extends FlowBase {
 
-    private static final String key = "ig03";
+    private static final String key = "simplepg";
 
     @Autowired
     DataSource dataSource;
+    @Resource
+    protected HistoryService historyService;
     @Autowired
     ProcessEngine processEngine;
     @Autowired
@@ -45,14 +45,14 @@ public class Inclisive13Tests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "1开3相容";
+    String processName = "简单并行网关";
 
     static int i = 0;
 
     @Test
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/1开3相容.bpmn20.xml")
+                .addClasspathResource("returntest/简单并行网关.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -98,10 +98,30 @@ public class Inclisive13Tests extends FlowBase {
 
 
     @Test
-    public void
+    public void startTasks() {
 
-    trace() {
+        deploy();
+        submit();
+        complete("whf");
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T3");
+        listCanRetuen("T5");
+        show();
+    }
 
+    @Test
+    public void retuenWork() {
+
+        return2Node("T5", "T2");
+        show();
+    }
+
+    @Test
+    public void trace() {
+
+
+        submit();
         System.out.println();
     }
 }

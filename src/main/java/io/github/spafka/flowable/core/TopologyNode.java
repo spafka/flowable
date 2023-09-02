@@ -22,13 +22,11 @@ public class TopologyNode<T extends FlowElement> implements Comparable<TopologyN
     }
 
 
-    class SkipList<T extends TopologyNode> extends ConcurrentSkipListSet {
+    public class SkipList<E extends TopologyNode> extends ConcurrentSkipListSet<E> {
 
         @Override
         public String toString() {
-
-            Object collect = this.stream().map(x -> (String) ((TopologyNode) x).node.getId()).collect(Collectors.toList());
-            return String.join(",", (List)collect) ;
+            return this.stream().map(x -> (x.node.getId())).collect(Collectors.joining(",", "[", "]"));
         }
     }
 

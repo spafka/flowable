@@ -128,11 +128,11 @@ public class FlowBase {
         return backNodes;
     }
 
-    public void return2Node(String to) {
+    public void return2Node(String from, String to) {
         Task task = null;
         List<Task> all = taskService.createTaskQuery()
                 .list();
-        task = all.get(0);
+        task = all.stream().filter(x -> x.getName().equals(from)).findFirst().get();
         flowService.backTask(task.getId(), to);
 
     }

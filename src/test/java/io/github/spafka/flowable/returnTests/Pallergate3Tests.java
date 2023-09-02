@@ -104,7 +104,6 @@ public class Pallergate3Tests extends FlowBase {
 
         listCanRetuen(null);
 
-        return2Node("T2-1");
 
         System.out.println();
     }

@@ -10,10 +10,13 @@ import org.flowable.common.engine.api.delegate.event.FlowableEngineEventType;
 import org.flowable.common.engine.api.delegate.event.FlowableEvent;
 import org.flowable.common.engine.api.delegate.event.FlowableEventDispatcher;
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener;
+
+import org.flowable.engine.delegate.event.impl.FlowableEntityWithVariablesEventImpl;
 import org.flowable.engine.impl.db.DbIdGenerator;
 import org.flowable.spring.SpringExpressionManager;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.flowable.spring.boot.EngineConfigurationConfigurer;
+import org.flowable.task.service.impl.persistence.entity.TaskEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -26,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j(topic = "van")
+@Slf4j()
 @Configuration
 public class FlowableConfig implements EngineConfigurationConfigurer<SpringProcessEngineConfiguration>, ApplicationListener<ContextRefreshedEvent> {
 
@@ -76,11 +79,13 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
 
         FlowableEventDispatcher dispatcher = engineConfiguration.getEventDispatcher();
 
-        FlowableEventListener globalTaskListener = new FlowableEventListener() {
+        FlowableEventListener TASK_COMPLETED = new FlowableEventListener() {
             @Override
             public void onEvent(FlowableEvent flowableEvent) {
+                FlowableEntityWithVariablesEventImpl taskComplete = (FlowableEntityWithVariablesEventImpl) flowableEvent;
+                TaskEntity taskEntity = (TaskEntity) taskComplete.getEntity();
+                log.info("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskComplete.getExecutionId());
 
-                log.info("全局监听器 {}", flowableEvent);
             }
 
             @Override
@@ -98,9 +103,33 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
                 return null;
             }
         };
-        dispatcher.addEventListener(globalTaskListener, FlowableEngineEventType.PROCESS_COMPLETED);
-        dispatcher.addEventListener(globalTaskListener, FlowableEngineEventType.TASK_COMPLETED);
-        dispatcher.addEventListener(globalTaskListener, FlowableEngineEventType.TASK_CREATED);
+        FlowableEventListener TASK_CREATED = new FlowableEventListener() {
+            @Override
+            public void onEvent(FlowableEvent flowableEvent) {
+
+                org.flowable.common.engine.impl.event.FlowableEntityEventImpl taskCreate = (org.flowable.common.engine.impl.event.FlowableEntityEventImpl) flowableEvent;
+                TaskEntity taskEntity = (TaskEntity) taskCreate.getEntity();
+                log.info("任务创建 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskCreate.getExecutionId());
+            }
+
+            @Override
+            public boolean isFailOnException() {
+                return false;
+            }
+
+            @Override
+            public boolean isFireOnTransactionLifecycleEvent() {
+                return false;
+            }
+
+            @Override
+            public String getOnTransaction() {
+                return null;
+            }
+        };
+
+        dispatcher.addEventListener(TASK_COMPLETED, FlowableEngineEventType.TASK_COMPLETED);
+        dispatcher.addEventListener(TASK_CREATED, FlowableEngineEventType.TASK_CREATED);
 
     }
 }

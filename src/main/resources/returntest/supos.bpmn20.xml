@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="App_93549d29f01ca145d916fd72c1dd6ac6">
+    <process id="K1353567853857009" name="回归测试">
+        <subProcess id="SubProcess_1621823843158" triggeredByEvent="true">
+            <userTask id="UserTask_1621823857249" name="子流程1" flowable:enableComment="true" flowable:showlog="true"
+                      flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                      flowable:url="Page_540580083d434481931643e18219560b">
+                <extensionElements>
+                    <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                           unRestrict="true" position="" person=""/>
+                    <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                    <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+                </extensionElements>
+            </userTask>
+            <userTask id="UserTask_1621823858611" name="发起者领导" flowable:enableComment="true"
+                      flowable:showlog="true" flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                      flowable:url="Page_540580083d434481931643e18219560b">
+                <extensionElements>
+                    <flowable:assigneeRule name="initiatorDirectLeader" value="initiatorDirectLeader"
+                                           posRestrict="false" groupRestrict="false" unRestrict="true" position=""
+                                           person=""/>
+                    <flowable:assigneeRule name="initiatorSuperiorLeader" value="initiatorSuperiorLeader"
+                                           posRestrict="false" groupRestrict="false" unRestrict="true" position=""
+                                           person=""/>
+                    <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                           unRestrict="true" position="" person=""/>
+                    <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                    <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+                </extensionElements>
+            </userTask>
+            <sequenceFlow id="edge_1621823858611" name="发起者领导" sourceRef="UserTask_1621823857249"
+                          targetRef="UserTask_1621823858611" flowable:order="1"/>
+            <userTask id="UserTask_1621823864770" name="提交者领导" flowable:enableComment="true"
+                      flowable:showlog="true" flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                      flowable:url="Page_540580083d434481931643e18219560b">
+                <extensionElements>
+                    <flowable:assigneeRule name="submitterDirectLeader" value="submitterDirectLeader"
+                                           posRestrict="false" groupRestrict="false" unRestrict="true" position=""
+                                           person=""/>
+                    <flowable:assigneeRule name="submitterSuperiorLeader" value="submitterSuperiorLeader"
+                                           posRestrict="false" groupRestrict="false" unRestrict="true" position=""
+                                           person=""/>
+                    <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                           unRestrict="true" position="" person=""/>
+                    <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                    <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+                </extensionElements>
+            </userTask>
+            <sequenceFlow id="edge_1621823864811" name="提交者领导" sourceRef="UserTask_1621823857249"
+                          targetRef="UserTask_1621823864770" flowable:order="2"/>
+            <startEvent id="SignalStartEvent_1621824008457" name="启动流程" flowable:initiator="startUser"
+                        isInterrupting="false">
+                <signalEventDefinition signalRef="SignalEventDefinition_1621823993208_signal"/>
+            </startEvent>
+            <sequenceFlow id="edge_1621824010483" sourceRef="SignalStartEvent_1621824008457"
+                          targetRef="UserTask_1621823857249" flowable:order="1"/>
+            <userTask id="UserTask_1621824109761" name="被指派者" flowable:enableComment="true" flowable:showlog="true"
+                      flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                      flowable:url="Page_540580083d434481931643e18219560b">
+                <extensionElements>
+                    <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                    <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+                </extensionElements>
+            </userTask>
+            <sequenceFlow id="edge_1621824109761" name="通过" sourceRef="UserTask_1621823858611"
+                          targetRef="UserTask_1621824109761" flowable:reassign="true" flowable:order="1"/>
+            <sequenceFlow id="edge_1621824433187" name="通过" sourceRef="UserTask_1621823864770"
+                          targetRef="UserTask_1621824109761" flowable:reassign="true" flowable:order="1"/>
+            <endEvent id="EndEvent_1621824435039"/>
+            <sequenceFlow id="edge_1621824435040" sourceRef="UserTask_1621824109761" targetRef="EndEvent_1621824435039"
+                          flowable:order="1"/>
+            <sequenceFlow id="edge_1621825303514" name="驳回" sourceRef="UserTask_1621823864770"
+                          targetRef="UserTask_1621823857249" flowable:rejectToSubmitter="true" flowable:order="2"/>
+            <sequenceFlow id="edge_1621825340231" name="驳回" sourceRef="UserTask_1621823858611"
+                          targetRef="UserTask_1621823857249" flowable:rejectToSubmitter="true" flowable:order="2"/>
+        </subProcess>
+        <startEvent id="tag_1" name="启动流程" flowable:initiator="startUser" flowable:startOnMobile="true"/>
+        <userTask id="UserTask_1621823680914" name="启动" flowable:enableComment="true" flowable:showlog="true"
+                  flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                  flowable:url="Page_540580083d434481931643e18219560b">
+            <extensionElements>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1621823680947" sourceRef="tag_1" targetRef="UserTask_1621823680914" flowable:order="1"/>
+        <userTask id="UserTask_1621823682361" name="人员-接收通知" flowable:enableComment="true" flowable:showlog="true"
+                  flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                  flowable:url="Page_540580083d434481931643e18219560b" flowable:notificationType="email,stationLetter">
+            <extensionElements>
+                <flowable:assigneeRule name="staff" companyId="1000" value="3562491078438560" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:assigneeRule name="staff" companyId="1000" value="3562491040853664" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1621823682361" name="主流程" sourceRef="UserTask_1621823680914"
+                      targetRef="UserTask_1621823682361" flowable:order="1"/>
+        <exclusiveGateway id="ExclusiveGateway_1621823686458"/>
+        <sequenceFlow id="edge_1621823686499" sourceRef="UserTask_1621823682361"
+                      targetRef="ExclusiveGateway_1621823686458" flowable:order="1"/>
+        <userTask id="UserTask_1621823688133" name="角色" flowable:enableComment="true" flowable:showlog="true"
+                  flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                  flowable:url="Page_540580083d434481931643e18219560b">
+            <extensionElements>
+                <flowable:assigneeRule name="role" companyId="1000" value="3562490837167872" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1621823688199" sourceRef="ExclusiveGateway_1621823686458"
+                      targetRef="UserTask_1621823688133" flowable:expression="${variables:get(a)==1}"
+                      flowable:order="1">
+            <conditionExpression xsi:type="tFormalExpression">${variables:get(a)==1}</conditionExpression>
+        </sequenceFlow>
+        <userTask id="UserTask_1621823689441" name="部门" flowable:enableComment="true" flowable:showlog="true"
+                  flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                  flowable:url="Page_540580083d434481931643e18219560b">
+            <extensionElements>
+                <flowable:assigneeRule name="department" companyId="1000" value="3562490660318880" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:assigneeRule name="department" companyId="1000" value="3562490660351648" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1621823689441" sourceRef="ExclusiveGateway_1621823686458"
+                      targetRef="UserTask_1621823689441" flowable:expression="${variables:get(a)==0}"
+                      flowable:order="2">
+            <conditionExpression xsi:type="tFormalExpression">${variables:get(a)==0}</conditionExpression>
+        </sequenceFlow>
+        <userTask id="UserTask_1621823731368" name="岗位、变量" flowable:enableComment="true" flowable:showlog="true"
+                  flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                  flowable:url="Page_540580083d434481931643e18219560b">
+            <extensionElements>
+                <flowable:assigneeRule name="position" companyId="1000" value="3562490794241696" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:assigneeRule name="position" companyId="1000" value="3562490794241697" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1621823731412" name="ok" sourceRef="UserTask_1621823688133"
+                      targetRef="UserTask_1621823731368" flowable:order="1"/>
+        <sequenceFlow id="edge_1621823734593" name="岗位" sourceRef="UserTask_1621823689441"
+                      targetRef="UserTask_1621823731368" flowable:order="1"/>
+        <endEvent id="EndEvent_1621823740971"/>
+        <sequenceFlow id="edge_1621823741003" sourceRef="UserTask_1621823731368" targetRef="EndEvent_1621823740971"
+                      flowable:order="1"/>
+        <sequenceFlow id="edge_1621823745403" name="no" sourceRef="UserTask_1621823688133"
+                      targetRef="UserTask_1621823682361" flowable:rejectToSubmitter="true" flowable:order="2"/>
+        <userTask id="UserTask_1621823885001" name="会签环节" flowable:multipleInstance="true"
+                  flowable:enableComment="true" flowable:showlog="true" flowable:renderOnMobile="true"
+                  flowable:candidateUsers="${assignee}" flowable:addInstance="true"
+                  flowable:url="Page_540580083d434481931643e18219560b">
+            <extensionElements>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:assigneeRule name="staff" companyId="1000" value="3562491078438560" posRestrict="false"
+                                       groupRestrict="false" unRestrict="true" position="" person=""/>
+                <flowable:approvalStrategies strategies="ANY" value=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+            <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="assigneeList"
+                                              flowable:elementVariable="assignee">
+                <completionCondition>${nrOfCompletedInstances/nrOfInstances &gt;= 1 }</completionCondition>
+            </multiInstanceLoopCharacteristics>
+        </userTask>
+        <sequenceFlow id="edge_1621823885001" name="会签任务" sourceRef="UserTask_1621823680914"
+                      targetRef="UserTask_1621823885001" flowable:order="2"/>
+        <boundaryEvent attachedToRef="UserTask_1621823682361" cancelActivity="false"
+                       id="TimerEventDefinition_1621823907907" flowable:url="Page_540580083d434481931643e18219560b"
+                       flowable:temp="表单页面">
+            <extensionElements>
+                <flowable:executionListener event="end"
+                                            flowable:expression="#{timerEndEventDelagate.execute(execution)}"/>
+            </extensionElements>
+            <timerEventDefinition>
+                <timeDate xsi:type="tFormalExpression" flowable:showTimer="date">
+                    ${formatDelegate.formatLongDate(variables:getOrDefault(date,''),'YYYY-MM-DD HH:mm:ss')}
+                </timeDate>
+            </timerEventDefinition>
+        </boundaryEvent>
+        <intermediateThrowEvent id="SignalEventDefinition_1621823993208">
+            <signalEventDefinition signalRef="SignalEventDefinition_1621823993208_signal"/>
+        </intermediateThrowEvent>
+        <sequenceFlow id="edge_1621823995797" sourceRef="TimerEventDefinition_1621823907907"
+                      targetRef="SignalEventDefinition_1621823993208" flowable:order="1"/>
+        <endEvent id="EndEvent_1621824262737"/>
+        <sequenceFlow id="edge_1621824262738" sourceRef="UserTask_1621823885001" targetRef="EndEvent_1621824262737"
+                      flowable:order="1"/>
+        <serviceTask id="UserTask_1621825085255" name="服务型任务"
+                     flowable:expression="#{autoService.execute(execution)}">
+            <extensionElements>
+                <flowable:oodm templateNamespace="report_report" templateName="chart" instanceName="Chart_Example"
+                               serviceNamespace="report_report" serviceName="flow"/>
+            </extensionElements>
+        </serviceTask>
+        <sequenceFlow id="edge_1621825085256" name="服务" sourceRef="UserTask_1621823689441"
+                      targetRef="UserTask_1621825085255" flowable:order="2"/>
+        <userTask id="UserTask_1621825091842" name="服务下游" flowable:enableComment="true" flowable:showlog="true"
+                  flowable:enableRevocation="true" flowable:renderOnMobile="true"
+                  flowable:url="Page_540580083d434481931643e18219560b">
+            <extensionElements>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1621825091899" sourceRef="UserTask_1621825085255" targetRef="UserTask_1621825091842"
+                      flowable:order="1"/>
+        <sequenceFlow id="edge_1621825099331" sourceRef="UserTask_1621825091842" targetRef="UserTask_1621823731368"
+                      flowable:order="1"/>
+    </process>
+    <signal id="SignalEventDefinition_1621823993208_signal" flowable:scope="processInstance"
+            name="report_report:chart:Chart_Example:ValueChangeEvent"/>
+</definitions>

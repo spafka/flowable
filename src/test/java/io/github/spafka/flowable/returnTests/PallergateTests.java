@@ -103,6 +103,8 @@ public class PallergateTests extends FlowBase {
 
     @Test
     public void trace() {
+        return2Node("T6","T2");
+
         System.out.println();
     }
 }
