@@ -3,19 +3,11 @@ package io.github.spafka.flowable.returnTests;
 
 import io.github.spafka.flowable.FlowBase;
 import io.github.spafka.flowable.core.FlowService;
-import io.github.spafka.flowable.core.TopologyNode;
-import io.github.spafka.flowable.service.Graphs;
-import io.github.spafka.tuple.Tuple2;
-import io.github.spafka.util.JoinUtils;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
-import org.flowable.bpmn.model.BpmnModel;
-import org.flowable.bpmn.model.FlowElement;
 import org.flowable.engine.*;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
-import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.junit.Test;
@@ -26,17 +18,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @link {{src/main/resources/returntest/多路并行网关.bpmn20.xml}}
  */
 @SpringBootTest
 @RunWith(value = SpringRunner.class)
-public class Pallergate4Tests extends FlowBase {
+public class Pallergate5Tests extends FlowBase {
 
-    private static final String key = "multipg";
+    private static final String key = "pg03";
 
     @Autowired
     DataSource dataSource;
@@ -53,14 +46,14 @@ public class Pallergate4Tests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "多路并行网关";
+    String processName = "并行网关03";
 
     static int i = 0;
 
 
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/多路并行网关.bpmn20.xml")
+                .addClasspathResource("returntest/并行网关03.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -124,9 +117,8 @@ public class Pallergate4Tests extends FlowBase {
         System.out.println();
     }
 
-    // 暂时不行
     @Test
-    public void okshould_notokcurrent() {
+    public void okshould_case2() {
         deploy();
         submit();
         complete("whf", "T2-1");

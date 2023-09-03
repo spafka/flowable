@@ -110,31 +110,89 @@ public class PallergateTests extends FlowBase {
         System.out.println();
     }
 
+
     @Test
-    public void list() {
-        List<Task> list = taskService.createTaskQuery().list();
-        Task task = list.stream().filter(x -> x.getName().equals("T6")).findFirst().get();
-        List<Execution> executions = runtimeService.createExecutionQuery().parentId(task.getProcessInstanceId()).list();
-
-        BpmnModel model = bpmnService.getBpmnModelByFlowableTaskId(task.getId());
-
-        var t2 = Graphs.backStace(model, "T6", "T1");
-        List<TopologyNode> collect = t2._2().stream().flatMap(x -> x.stream()).distinct().collect(Collectors.toList());
+    public void okshould() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
 
 
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
 
-        TopologyNode topologyNode = collect.get(collect.size()-1);
+    }
+    @Test
+    public void okshould_case1() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
 
-        LinkedList<LinkedList<FlowElement>> paths2 = new LinkedList<>();
-        Graphs.currentToEnd(topologyNode, new LinkedList<>(), paths2);
 
-        System.out.println();
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T7");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
 
-        List<FlowElement> toEnd = paths2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
-        List<Tuple2<Execution, FlowElement>> tuple2s = JoinUtils.innerJoin(executions, toEnd, execution -> execution.getActivityId(), b -> b.getId());
+    }
 
-        toEnd.forEach(x-> System.out.println(x.getName()));
-        System.out.println();
+    @Test
+    public void okshould_case2() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T5");
+        complete("whf", "T5");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
+
+    }
+
+    @Test
+    public void okshould_case3() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T4");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
 
     }
 }

@@ -44,7 +44,7 @@ public class GraphTests {
         BpmnModel bpmnModel = init("src/main/resources/returntest/多路并行网关.bpmn20.xml");
 
         var jumpTypeEnum = Graphs.backStace(bpmnModel, "T4", "T2-1");
-        var jumpTypeEnum2 = Graphs.backStace(bpmnModel, "T4", "T3-1");
+        //var jumpTypeEnum2 = Graphs.backStace(bpmnModel, "T4", "T3-1");
 
         System.out.println();
     }
@@ -88,6 +88,8 @@ public class GraphTests {
         BpmnModel bpmnModel = init("src/main/resources/returntest/复杂并行网关.bpmn20.xml");
 
         var tuple = Graphs.backStace(bpmnModel, "T7", "T5");
+
+        var tuple3 = Graphs.backStace(bpmnModel, "T7", "T4");
 
         System.out.println();
 

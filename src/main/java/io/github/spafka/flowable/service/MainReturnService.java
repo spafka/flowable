@@ -115,8 +115,8 @@ public class MainReturnService implements ReturnService {
             Set<FlowElement> sequenceFlows = tuple._3;
             sequenceFlows.forEach(x -> {
                 if (x instanceof SequenceFlow) {
-                    insertExecution(((SequenceFlow) x).getSourceRef(), task.getProcessInstanceId(), task.getProcessDefinitionId(), task.getTenantId());
-
+                    //todo need remove more test
+                    // insertExecution(((SequenceFlow) x).getSourceRef(), task.getProcessInstanceId(), task.getProcessDefinitionId(), task.getTenantId());
                 }
                 if (x instanceof Gateway) {
                     if (executionIds.contains(x.getId())) {

@@ -25,14 +25,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FlowBase {
+public  class FlowBase {
 
    static int i = 0;
 
     String processName = "s";
 
     @Autowired
-   public RuntimeService runtimeService;
+    public RuntimeService runtimeService;
     @Autowired
     public  TaskService taskService;
     @Autowired
@@ -79,6 +79,12 @@ public class FlowBase {
 
         all.forEach(x -> System.out.println(String.format("Task[id=%s,name=%s,assignee=%s]", x.getId(), x.getName(), x.getAssignee())));
     }
+
+    public List<Task> listall() {
+        return taskService.createTaskQuery()
+                .list();
+
+       }
 
     public void show() {
 

@@ -7,6 +7,7 @@ import io.github.spafka.flowable.core.TopologyNode;
 import io.vavr.Tuple;
 import io.vavr.Tuple3;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
@@ -58,7 +59,7 @@ public class Graphs {
 
         FlowElement endNode = flowElements.stream().filter(x -> x instanceof EndEvent).findFirst().get();
 
-        indexMap.forEach((k, v) -> isInParallelGateway(v, root, indexMap, endNode));
+        indexMap.forEach((k, v) -> isInParallelGateway(v, root, indexMap, endNode, process));
 
         TopologyNode<FlowElement> end = indexMap.get(endNode.getId());
         LinkedList<TopologyNode<FlowElement>> path = new LinkedList<>();
@@ -73,22 +74,25 @@ public class Graphs {
 
         if (jumpTypeEnum == JumpTypeEnum.paral) {
 
-            List<TopologyNode<FlowElement>> collect = paths.stream().flatMap(x -> x.stream().filter(y -> y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway)).distinct().collect(Collectors.toList());
+            List<TopologyNode<FlowElement>> joinGateways = paths.stream().flatMap(x -> x.stream().filter(y -> y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway)).distinct().collect(Collectors.toList());
 
+            var currentTaskNode = paths.get(0).getFirst();
+            List<TopologyNode<FlowElement>> innergateway = new LinkedList<>();
 
-            List<TopologyNode<FlowElement>> joinGateways = new LinkedList<>();
-            collect.forEach(x -> {
-                if (!x.forks.isEmpty()) {
-                    Set<TopologyNode<FlowElement>> forks = x.forks;
-                    forks.forEach(y -> {
-                        if (FlowableUtils.iteratorCheckSequentialReferTarget(paths.get(0).get(0).node,y.join.node.getId(),null,null)) {
-                            joinGateways.add(y.join);
+                    joinGateways.stream()
+                    .filter(x -> {
+                        if (x.join != null) {
+                            TopologyNode join = x.join;
+                            if (joinGateways.contains(join)) {
+                                innergateway.add(x);
+                                innergateway.add(x.join);
+                            }
                         }
-                    });
-                }
 
-            });
-
+                        return false;
+                    })
+                    .collect(Collectors.toList());
+            joinGateways.removeAll(innergateway);
 
             joinGateways.forEach(gates -> {
                 List<SequenceFlow> incomingFlows = ((Gateway) gates.node).getIncomingFlows();
@@ -106,47 +110,7 @@ public class Graphs {
     }
 
 
-    public static void isInParallelGateway2(TopologyNode<FlowElement> node, TopologyNode<FlowElement> start, Map<String, TopologyNode<FlowElement>> indexMap) {
-
-        TopologyNode<FlowElement> dummy = node;
-        while (dummy != start) {
-            TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> pre = dummy.pre;
-            for (TopologyNode<FlowElement> x : pre) {
-                if (x.node instanceof ParallelGateway || x.node instanceof InclusiveGateway) {
-
-                    // maybe
-                    Boolean b = FlowableUtils.iteratorCheckSequentialReferTarget(node.node, x.node.getId(), null, null);
-                    if (b) {
-                        if ((((Gateway) x.node).getOutgoingFlows().size()) > 1) {
-                            List<LinkedList<TopologyNode<FlowElement>>> paths = new ArrayList<>();
-
-                            findPath(indexMap, x.node.getId(), node.node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
-                            for (LinkedList<TopologyNode<FlowElement>> path : paths) {
-                                int c = 0;
-                                for (TopologyNode topologyNode : path) {
-                                    if (topologyNode.node instanceof ParallelGateway || topologyNode.node instanceof InclusiveGateway) {
-                                        if (isJoinGateway(topologyNode)) {
-                                            c--;
-                                        } else {
-                                            c++;
-                                        }
-                                    }
-                                }
-                                if (c != 0) {
-                                    node.addGate(x);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                dummy = x;
-            }
-        }
-
-    }
-
-    public static void isInParallelGateway(TopologyNode<FlowElement> parallable, TopologyNode<FlowElement> start, Map<String, TopologyNode<FlowElement>> indexMap, FlowElement endNode) {
+    public static void isInParallelGateway(TopologyNode<FlowElement> parallable, TopologyNode<FlowElement> start, Map<String, TopologyNode<FlowElement>> indexMap, FlowElement endNode, Process process) {
         if (!(parallable.node instanceof ParallelGateway) && !(parallable.node instanceof InclusiveGateway)) {
             return;
         } else {
@@ -171,18 +135,15 @@ public class Graphs {
                     findPath(indexMap, parallable.node.getId(), pg.node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
 
                     List<SequenceFlow> outgoingFlows = parallelGateway.getOutgoingFlows();
+                    Boolean reduce = outgoingFlows.stream().map(x -> FlowableUtils.isReachable(process, x.getId(), pg.node.getId())).reduce(true, (a, b) -> a && b);
 
-                    if (outgoingFlows.size() != paths.size()) {
-                        continue;
-                    } else {
+                    if (reduce) {
                         paths.forEach(x -> {
                             x.stream()
                                     .filter(y -> y != parallable)
                                     .filter(y -> (y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway))
                                     .forEach(y -> {
                                         y.forks.add(parallable);
-                                        parallable.join = y;
-                                        //y.addGate(parallable);
                                     });
                         });
                         paths.forEach(x -> {
@@ -190,13 +151,10 @@ public class Graphs {
                                     .forEach(y -> {
                                         y.addGate(parallable);
                                         y.forks.add(parallable);
-
                                     });
                         });
-                        System.out.println();
-
+                        parallable.join = pg;
                     }
-
                 }
 
             }
@@ -205,6 +163,13 @@ public class Graphs {
 
     }
 
+
+    /***
+     *
+     * /-----\
+     * A     B b的fork节点是A ,A的join节点只有b
+     * \-----/
+     */
     public static boolean isJoinGateway(TopologyNode topologyNode) {
         return !topologyNode.forks.isEmpty();
     }

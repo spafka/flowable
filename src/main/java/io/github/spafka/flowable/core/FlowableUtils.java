@@ -732,9 +732,9 @@ public class FlowableUtils {
      * Verifies if the element with the given source identifier can reach the element with the target identifier through
      * following sequence flow.
      */
-    public static boolean isReachable(String processDefinitionId, String sourceElementId, String targetElementId) {
+    public static boolean isReachable(Process process , String sourceElementId, String targetElementId) {
         // Fetch source and target elements
-        Process process = ProcessDefinitionUtil.getProcess(processDefinitionId);
+
         FlowElement sourceFlowElement = process.getFlowElement(sourceElementId, true);
         FlowNode sourceElement = null;
         if (sourceFlowElement instanceof FlowNode) {
@@ -751,11 +751,11 @@ public class FlowableUtils {
         }
         if (sourceElement == null) {
             throw new FlowableException("Invalid sourceElementId '" + sourceElementId + "': no element found for " +
-                    "this" + " id n process definition '" + processDefinitionId + "'");
+                    "this" + " id n process definition '" + process.getId() + "'");
         }
         if (targetElement == null) {
             throw new FlowableException("Invalid targetElementId '" + targetElementId + "': no element found for " +
-                    "this" + " id n process definition '" + processDefinitionId + "'");
+                    "this" + " id n process definition '" + process.getId() + "'");
         }
         Set<String> visitedElements = new HashSet<>();
         return isReachable(process, sourceElement, targetElement, visitedElements);
