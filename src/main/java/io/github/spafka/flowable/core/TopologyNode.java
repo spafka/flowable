@@ -2,8 +2,8 @@ package io.github.spafka.flowable.core;
 
 import org.flowable.bpmn.model.FlowElement;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
@@ -11,6 +11,11 @@ public class TopologyNode<T extends FlowElement> implements Comparable<TopologyN
     public T node;
     public SkipList<TopologyNode<T>> next = new SkipList<>();
     public SkipList<TopologyNode<T>> pre = new SkipList<>();
+
+    public SkipList<TopologyNode<T>> gateways = new SkipList<>();
+
+   public Set<TopologyNode<FlowElement>> forks = new HashSet<>();
+   public TopologyNode join;
 
     public TopologyNode(T node) {
         this.node = node;
@@ -28,10 +33,16 @@ public class TopologyNode<T extends FlowElement> implements Comparable<TopologyN
         public String toString() {
             return this.stream().map(x -> (x.node.getId())).collect(Collectors.joining(",", "[", "]"));
         }
+
+
     }
 
     public void addSource(TopologyNode<T> source) {
         pre.add(source);
+    }
+
+    public void addGate(TopologyNode<T> gate) {
+        gateways.add(gate);
     }
 
     public void addNext(TopologyNode<T> source) {

@@ -10,7 +10,6 @@ import org.flowable.common.engine.api.delegate.event.FlowableEngineEventType;
 import org.flowable.common.engine.api.delegate.event.FlowableEvent;
 import org.flowable.common.engine.api.delegate.event.FlowableEventDispatcher;
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener;
-
 import org.flowable.engine.delegate.event.impl.FlowableEntityWithVariablesEventImpl;
 import org.flowable.engine.impl.db.DbIdGenerator;
 import org.flowable.spring.SpringExpressionManager;
@@ -128,8 +127,34 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
             }
         };
 
+
+        FlowableEventListener PROCESS_COMPLETE = new FlowableEventListener() {
+            @Override
+            public void onEvent(FlowableEvent flowableEvent) {
+
+                System.err.println(flowableEvent.getType()+"任务完成");
+            }
+
+            @Override
+            public boolean isFailOnException() {
+                return false;
+            }
+
+            @Override
+            public boolean isFireOnTransactionLifecycleEvent() {
+                return false;
+            }
+
+            @Override
+            public String getOnTransaction() {
+                return null;
+            }
+        };
+
         dispatcher.addEventListener(TASK_COMPLETED, FlowableEngineEventType.TASK_COMPLETED);
         dispatcher.addEventListener(TASK_CREATED, FlowableEngineEventType.TASK_CREATED);
+
+        dispatcher.addEventListener(PROCESS_COMPLETE, FlowableEngineEventType.PROCESS_COMPLETED);
 
     }
 }

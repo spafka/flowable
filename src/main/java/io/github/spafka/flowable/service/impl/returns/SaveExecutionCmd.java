@@ -1,5 +1,6 @@
 package io.github.spafka.flowable.service.impl.returns;
 
+import lombok.extern.slf4j.Slf4j;
 import org.flowable.common.engine.impl.interceptor.Command;
 import org.flowable.common.engine.impl.interceptor.CommandContext;
 import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
@@ -10,6 +11,7 @@ import java.io.Serializable;
 /**
  * @author guzt
  */
+@Slf4j
 public class SaveExecutionCmd implements Command<Void>, Serializable {
     private static final long serialVersionUID = 1L;
     protected ExecutionEntity entity;
@@ -23,7 +25,7 @@ public class SaveExecutionCmd implements Command<Void>, Serializable {
         if (this.entity == null) {
             throw new RuntimeException("executionEntity is null");
         } else {
-            System.out.println("执行 SaveExecutionCmd---" + entity.getId());
+            log.info("执行 SaveExecutionCmd {}", entity);
             CommandContextUtil.getDbSqlSession(commandContext).insert(this.entity);
         }
         return null;

@@ -1,35 +1,161 @@
 package io.github.spafka.flowable.service;
 
-import org.flowable.bpmn.model.BpmnModel;
+import io.github.spafka.flowable.JumpTypeEnum;
+import io.github.spafka.flowable.core.TopologyNode;
+import io.github.spafka.flowable.service.impl.returns.SaveExecutionCmd;
+import io.github.spafka.util.JoinUtils;
+import io.vavr.Tuple3;
+import lombok.extern.slf4j.Slf4j;
+import lombok.var;
+import org.flowable.bpmn.model.*;
+import org.flowable.common.engine.impl.cfg.IdGenerator;
+import org.flowable.engine.ManagementService;
+import org.flowable.engine.ProcessEngineConfiguration;
+import org.flowable.engine.RuntimeService;
+import org.flowable.engine.TaskService;
+import org.flowable.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
+import org.flowable.engine.impl.persistence.entity.ExecutionEntityImpl;
+import org.flowable.engine.impl.persistence.entity.ExecutionEntityManager;
+import org.flowable.engine.runtime.Execution;
+import org.flowable.task.api.Task;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Primary
+@Slf4j
 public class MainReturnService implements ReturnService {
 
-    @Qualifier("gutzReturnService")
     @Autowired
-    ReturnService gutzReturnService;
-
-    @Qualifier("githubReturnService")
+    private BpmnService bpmnService;
     @Autowired
-    ReturnService githubReturnService;
+    private TaskService taskService;
+    @Autowired
+    private RuntimeService runtimeService;
+    @Autowired
+    private ProcessEngineConfiguration processEngineConfiguration;
+    @Autowired
+    private ManagementService managementService;
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     @Override
     public List<FlowNodeDto> getCanRejectedFlowNode(BpmnModel bpmnModel, String instanceId, String processInstanceId) {
-        return gutzReturnService.getCanRejectedFlowNode(bpmnModel, instanceId, processInstanceId);
+        Task task = taskService.createTaskQuery().taskId(instanceId).singleResult();
+        Tuple3<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>> tuple3 = Graphs.backStace(bpmnModel, task.getTaskDefinitionKey(), null);
+
+        LinkedList<TopologyNode<FlowElement>> one = tuple3._2.get(0);
+
+
+        one.removeFirst();
+        TopologyNode last = one.getFirst();
+
+        Deque<TopologyNode> deque = new LinkedList<>();
+        Set<TopologyNode> processed = new LinkedHashSet<>();
+
+
+        deque.add(last);
+        processed.add(last);
+        while (!deque.isEmpty()) {
+
+            TopologyNode<FlowElement> poll = deque.pollFirst();
+
+            TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> pre = poll.pre;
+
+            pre.forEach(x -> {
+                boolean contains = processed.contains(x);
+                if (!contains) {
+                    processed.add(x);
+                    deque.addLast(x);
+                }
+            });
+
+        }
+
+        return processed
+                .stream()
+                .filter(x -> x.node instanceof UserTask)
+                .map(x -> new FlowNodeDto(x.node.getId(), x.node.getName()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public boolean returnToTarget(String taskId, String targetId) {
 
 
+        BpmnModel model = bpmnService.getBpmnModelByFlowableTaskId(taskId);
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
 
-        return gutzReturnService.returnToTarget(taskId, targetId);
+        List<Execution> executions = runtimeService.createExecutionQuery().parentId(task.getProcessInstanceId()).list();
+
+        var tuple = Graphs.backStace(model, task.getTaskDefinitionKey(), targetId);
+        List<TopologyNode> collect = tuple._2().stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+
+        if (tuple._1 == JumpTypeEnum.serial || tuple._1 == JumpTypeEnum.paral) {
+
+            log.info("驳回方式驳{}", tuple._1.name());
+            TopologyNode<FlowElement> topologyNode = collect.get(collect.size() - 1);
+
+            LinkedList<LinkedList<FlowElement>> paths2 = new LinkedList<>();
+            Graphs.currentToEnd(topologyNode, new LinkedList<>(), paths2);
+            List<FlowElement> toEnd = paths2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+            List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
+
+            log.info("当前executions {} {}", executionIds, executions);
+            runtimeService.createChangeActivityStateBuilder()
+                    .moveExecutionsToSingleActivityId(executionIds, targetId)
+                    .changeState();
+
+            Set<FlowElement> sequenceFlows = tuple._3;
+            sequenceFlows.forEach(x -> {
+                if (x instanceof SequenceFlow) {
+                    insertExecution(((SequenceFlow) x).getSourceRef(), task.getProcessInstanceId(), task.getProcessDefinitionId(), task.getTenantId());
+
+                }
+                if (x instanceof Gateway) {
+                    if (executionIds.contains(x.getId())) {
+                        return;
+                    }
+
+                    if (runtimeService.createNativeExecutionQuery().sql(String.format("select * from act_ru_execution where PROC_INST_ID_='%s' and ACT_ID_='%s';", task.getProcessInstanceId(), x.getId())).list().isEmpty())
+                        insertExecution(x.getId(), task.getProcessInstanceId(), task.getProcessDefinitionId(), task.getTenantId());
+                }
+            });
+        }
+
+        return false;
+
+    }
+
+    protected void insertExecution(String gatewayId, String processInstanceId, String processDefinitionId, String tenantId) {
+
+
+        ExecutionEntityManager executionEntityManager = ((ProcessEngineConfigurationImpl) processEngineConfiguration).getExecutionEntityManager();
+        ExecutionEntity executionEntity = executionEntityManager.create();
+        IdGenerator idGenerator = processEngineConfiguration.getIdGenerator();
+        executionEntity.setId(idGenerator.getNextId());
+        executionEntity.setRevision(0);
+        executionEntity.setProcessInstanceId(processInstanceId);
+
+        executionEntity.setParentId(processInstanceId);
+        executionEntity.setProcessDefinitionId(processDefinitionId);
+
+        executionEntity.setRootProcessInstanceId(processInstanceId);
+        ((ExecutionEntityImpl) executionEntity).setActivityId(gatewayId);
+        executionEntity.setActive(false);
+
+        executionEntity.setSuspensionState(1);
+        executionEntity.setTenantId(tenantId);
+
+        executionEntity.setStartTime(new Date());
+        ((ExecutionEntityImpl) executionEntity).setCountEnabled(true);
+
+        managementService.executeCommand(new SaveExecutionCmd(executionEntity));
     }
 }

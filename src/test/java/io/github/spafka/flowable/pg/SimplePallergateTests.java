@@ -113,7 +113,13 @@ public class SimplePallergateTests extends FlowBase {
     @Test
     public void retuenWork() {
 
-        return2Node("T5", "T2");
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T4");
+        complete("whf", "T5");
         show();
     }
 
@@ -124,4 +130,6 @@ public class SimplePallergateTests extends FlowBase {
         submit();
         System.out.println();
     }
+
+
 }

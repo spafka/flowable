@@ -21,6 +21,16 @@
             <version>1.5.2</version>
         </dependency>
         <dependency>
+            <groupId>io.github.spafka</groupId>
+            <artifactId>utils</artifactId>
+            <version>1.0.12</version>
+        </dependency>
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <version>0.10.4</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
@@ -44,23 +54,44 @@
         <dependency>
             <groupId>org.flowable</groupId>
             <artifactId>flowable-engine</artifactId>
-            <version>6.4.1</version>
+            <version>6.4.2</version>
         </dependency>
         <dependency>
             <groupId>org.flowable</groupId>
             <artifactId>flowable-spring-boot-starter</artifactId>
-            <version>6.4.1</version>
+            <version>6.4.2</version>
             <!-- 排除flowable自带的权限认证 -->
             <exclusions>
                 <exclusion>
                     <groupId>org.flowable</groupId>
                     <artifactId>flowable-spring-security</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>flowable-cmmn-engine</artifactId>
+                    <groupId>org.flowable</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>flowable-dmn-engine</artifactId>
+                    <groupId>org.flowable</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>flowable-app-engine</artifactId>
+                    <groupId>org.flowable</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>flowable-idm-engine</artifactId>
+                    <groupId>org.flowable</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>

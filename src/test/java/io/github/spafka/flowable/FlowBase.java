@@ -1,43 +1,52 @@
 package io.github.spafka.flowable;
 
 import io.github.spafka.flowable.core.FlowService;
+import io.github.spafka.flowable.service.BpmnService;
 import io.github.spafka.flowable.service.FlowNodeDto;
 import org.apache.commons.io.IOUtils;
+import org.flowable.bpmn.model.BpmnModel;
+import org.flowable.bpmn.model.FlowElement;
 import org.flowable.bpmn.model.Process;
-import org.flowable.bpmn.model.*;
-import org.flowable.engine.HistoryService;
-import org.flowable.engine.RepositoryService;
-import org.flowable.engine.RuntimeService;
-import org.flowable.engine.TaskService;
-import org.flowable.engine.history.HistoricActivityInstance;
+import org.flowable.bpmn.model.SubProcess;
+import org.flowable.engine.*;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.task.api.Task;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FlowBase {
 
-    int i = 0;
+   static int i = 0;
 
     String processName = "s";
 
     @Autowired
-    RuntimeService runtimeService;
+   public RuntimeService runtimeService;
     @Autowired
-    TaskService taskService;
+    public  TaskService taskService;
     @Autowired
-    HistoryService historyService;
+    public HistoryService historyService;
     @Autowired
-    FlowService flowService;
+    public FlowService flowService;
+    @Autowired
+    public BpmnService bpmnService;
+    @Autowired
+    public DataSource dataSource;
+    @Autowired
+    public ProcessEngine processEngine;
+    @Autowired
+    public RepositoryService repositoryService;
 
 
     public void diagram(RepositoryService repositoryService, String processName) {

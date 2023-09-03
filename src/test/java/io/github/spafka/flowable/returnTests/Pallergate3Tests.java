@@ -1,24 +1,17 @@
 package io.github.spafka.flowable.returnTests;
 
 import io.github.spafka.flowable.FlowBase;
-import io.github.spafka.flowable.core.FlowService;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
-import org.flowable.engine.ProcessEngine;
-import org.flowable.engine.RepositoryService;
-import org.flowable.engine.RuntimeService;
-import org.flowable.engine.TaskService;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -32,26 +25,13 @@ public class Pallergate3Tests extends FlowBase {
 
     private static final String key = "pg03";
 
-    @Autowired
-    DataSource dataSource;
-    @Autowired
-    ProcessEngine processEngine;
-    @Autowired
-    RepositoryService repositoryService;
-    @Autowired
-    TaskService taskService;
-    @Autowired
-    RuntimeService runtimeService;
-    @Autowired
-    FlowService flowService;
 
     String processName = "1开3并行流";
 
-    static int i = 0;
 
     @Test
     public void deploy() {
-        Deployment deployment = repositoryService.createDeployment()
+        Deployment deployment = super.repositoryService.createDeployment()
                 .addClasspathResource("returntest/1开3并行流.bpmn20.xml")
                 .name(processName)
                 .key(key)
@@ -98,11 +78,16 @@ public class Pallergate3Tests extends FlowBase {
 
 
     @Test
-    public void
+    public void trace() {
 
-    trace() {
 
-        listCanRetuen(null);
+        deploy();
+        submit();
+        complete("whf","T2-1");
+        complete("whf","T2-2");
+        complete("whf","T2-3");
+
+        return2Node("T3","T2-1");
 
 
         System.out.println();

@@ -2,16 +2,21 @@ package io.github.spafka.flowable.returnTests;
 
 import io.github.spafka.flowable.FlowBase;
 import io.github.spafka.flowable.core.FlowService;
-import io.github.spafka.flowable.service.FlowNodeDto;
+import io.github.spafka.flowable.core.TopologyNode;
+import io.github.spafka.flowable.service.Graphs;
+import io.github.spafka.tuple.Tuple2;
+import io.github.spafka.util.JoinUtils;
+import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
+import org.flowable.bpmn.model.BpmnModel;
+import org.flowable.bpmn.model.FlowElement;
 import org.flowable.engine.*;
-import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +25,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
@@ -103,8 +106,35 @@ public class PallergateTests extends FlowBase {
 
     @Test
     public void trace() {
-        return2Node("T6","T2");
 
         System.out.println();
+    }
+
+    @Test
+    public void list() {
+        List<Task> list = taskService.createTaskQuery().list();
+        Task task = list.stream().filter(x -> x.getName().equals("T6")).findFirst().get();
+        List<Execution> executions = runtimeService.createExecutionQuery().parentId(task.getProcessInstanceId()).list();
+
+        BpmnModel model = bpmnService.getBpmnModelByFlowableTaskId(task.getId());
+
+        var t2 = Graphs.backStace(model, "T6", "T1");
+        List<TopologyNode> collect = t2._2().stream().flatMap(x -> x.stream()).distinct().collect(Collectors.toList());
+
+
+
+        TopologyNode topologyNode = collect.get(collect.size()-1);
+
+        LinkedList<LinkedList<FlowElement>> paths2 = new LinkedList<>();
+        Graphs.currentToEnd(topologyNode, new LinkedList<>(), paths2);
+
+        System.out.println();
+
+        List<FlowElement> toEnd = paths2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+        List<Tuple2<Execution, FlowElement>> tuple2s = JoinUtils.innerJoin(executions, toEnd, execution -> execution.getActivityId(), b -> b.getId());
+
+        toEnd.forEach(x-> System.out.println(x.getName()));
+        System.out.println();
+
     }
 }

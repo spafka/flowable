@@ -3,7 +3,7 @@ package io.github.spafka.flowable.core;
 import io.github.spafka.flowable.service.BpmnService;
 import io.github.spafka.flowable.service.FlowNodeDto;
 import io.github.spafka.flowable.service.ReturnService;
-import org.flowable.bpmn.model.*;
+import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.engine.*;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
