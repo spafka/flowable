@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -21,7 +22,7 @@ public class JoinUtilsTests {
 
 
             Utils.timeTakeMS(() -> {
-                List<Object> objects = JoinUtils.sortJoin(collect, collect, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> a);
+                List<Object> objects = JoinUtils.sortJoin(collect, collect, Function.identity(), Function.identity(), (a, b) -> a);
                 System.out.println();
             }, "new join");
         }
@@ -32,17 +33,17 @@ public class JoinUtilsTests {
 
 
             Utils.timeTakeMS(() -> {
-                List<Object> objects = JoinUtils.sortJoin(collect, collect, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> a);
+                List<Object> objects = JoinUtils.sortJoin(collect, collect, Function.identity(), Function.identity(), (a, b) -> a);
                 System.out.println();
-                }, "new join");
+            }, "new join");
         }
 
         {
-            List<Integer> collect = Arrays.asList(1,1);
-            List<Integer> collect2 = Arrays.asList(1,1);
+            List<Integer> collect = Arrays.asList(1, 1);
+            List<Integer> collect2 = Arrays.asList(1, 1);
 
             Utils.timeTakeMS(() -> {
-                List<Object> objects = JoinUtils.sortJoin(collect, collect, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> a);
+                List<Object> objects = JoinUtils.sortJoin(collect, collect, Function.identity(), Function.identity(), (a, b) -> a);
                 System.out.println();
             }, "new join");
 
@@ -60,82 +61,89 @@ public class JoinUtilsTests {
 
 
             Utils.timeTakeMS(() -> {
-                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> new Tuple2<>(a, b));
+                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Function.identity(), Function.identity(), (a, b) -> new Tuple2<>(a, b));
                 System.out.println(tuple2s);
             }, "new join");
         }
 
         {
-            List<Integer> list1 = Arrays.asList(1,3,3,4,5,6);
-            List<Integer> list2 = Arrays.asList(1,3,5);
+            List<Integer> list1 = Arrays.asList(1, 3, 3, 4, 5, 6);
+            List<Integer> list2 = Arrays.asList(1, 3, 5);
 
 
             Utils.timeTakeMS(() -> {
-                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> new Tuple2<>(a, b));
+                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Function.identity(), Function.identity(), (a, b) -> new Tuple2<>(a, b));
                 System.out.println(tuple2s);
             }, "new join");
         }
 
         {
-            List<Integer> list1 = Arrays.asList(1,3,3,4,5,6);
+            List<Integer> list1 = Arrays.asList(1, 3, 3, 4, 5, 6);
             List<Integer> list2 = Arrays.asList(1);
 
 
             Utils.timeTakeMS(() -> {
-                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> new Tuple2<>(a, b));
+                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Function.identity(), Function.identity(), (a, b) -> new Tuple2<>(a, b));
                 System.out.println(tuple2s);
             }, "new join");
         }
 
         {
-            List<Integer> list1 = Arrays.asList(7,3,3,4,5,6);
-            List<Integer> list2 = Arrays.asList(1,3,3);
+            List<Integer> list1 = Arrays.asList(7, 3, 3, 4, 5, 6);
+            List<Integer> list2 = Arrays.asList(1, 3, 3);
 
 
             Utils.timeTakeMS(() -> {
-                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> new Tuple2<>(a, b));
+                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Function.identity(), Function.identity(), (a, b) -> new Tuple2<>(a, b));
                 System.out.println(tuple2s);
             }, "new join");
         }
 
         {
-            List<Integer> list1 = Arrays.asList(7,9,0);
-            List<Integer> list2 = Arrays.asList(1,3,3);
+            List<Integer> list1 = Arrays.asList(7, 9, 0);
+            List<Integer> list2 = Arrays.asList(1, 3, 3);
 
 
             Utils.timeTakeMS(() -> {
-                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> new Tuple2<>(a, b));
+                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Function.identity(), Function.identity(), (a, b) -> new Tuple2<>(a, b));
                 System.out.println(tuple2s);
             }, "new join");
         }
 
         {
-            List<Integer> list1 = Arrays.asList(3,3,3,3);
-            List<Integer> list2 = Arrays.asList(1,3,3);
+            List<Integer> list1 = Arrays.asList(3, 3, 3, 3);
+            List<Integer> list2 = Arrays.asList(1, 3, 3, 3);
 
 
             Utils.timeTakeMS(() -> {
-                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> new Tuple2<>(a, b));
+                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Function.identity(), Function.identity(), (a, b) -> new Tuple2<>(a, b));
                 System.out.println(tuple2s);
             }, "new join");
         }
-
 
 
     }
 
     @Test
-    public void _3(){
+    public void _3() {
         {
-            List<Integer> list1 = Arrays.asList(3,3,3,3);
-            List<Integer> list2 = Arrays.asList(1,3,3);
+            List<Integer> list1 = Arrays.asList(3, 3, 3, 3);
+            List<Integer> list2 = Arrays.asList(1, 3, 3);
 
 
             Utils.timeTakeMS(() -> {
-                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils.sortLeftJoin(list1, list2, Integer::compareTo, Integer::compareTo, Integer::compareTo, (a, b) -> new Tuple2<>(a, b));
+                List<Tuple2<Integer, Integer>> tuple2s = JoinUtils
+                        .sortLeftJoin(list1,
+                                list2,
+                                Function.identity(),
+                                Function.identity(),
+
+                                (a, b) -> new Tuple2<>(a, b));
                 System.out.println(tuple2s);
             }, "new join");
         }
 
     }
+
+
 }
