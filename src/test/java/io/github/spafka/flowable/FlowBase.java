@@ -3,6 +3,7 @@ package io.github.spafka.flowable;
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.service.BpmnService;
 import io.github.spafka.flowable.service.FlowNodeDto;
+import io.github.spafka.util.JoinUtils;
 import org.apache.commons.io.IOUtils;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.FlowElement;
@@ -11,6 +12,8 @@ import org.flowable.bpmn.model.SubProcess;
 import org.flowable.engine.*;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.task.api.Task;
+import org.flowable.task.api.TaskInfo;
+import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sql.DataSource;
@@ -20,21 +23,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public  class FlowBase {
+public class FlowBase {
 
-   static int i = 0;
+    static int i = 0;
 
     String processName = "s";
 
     @Autowired
     public RuntimeService runtimeService;
     @Autowired
-    public  TaskService taskService;
+    public TaskService taskService;
     @Autowired
     public HistoryService historyService;
     @Autowired
@@ -84,7 +88,7 @@ public  class FlowBase {
         return taskService.createTaskQuery()
                 .list();
 
-       }
+    }
 
     public void show() {
 
@@ -128,19 +132,21 @@ public  class FlowBase {
 
     public List<FlowNodeDto> listCanRetuen(String taskName) {
         Task task;
+        List<Task> all = taskService.createTaskQuery().list();
 
-        List<Task> all = taskService.createTaskQuery()
-
-                .list();
         task = all.stream().filter(x -> x.getName().equals(taskName) || Objects.isNull(taskName)).findFirst().get();
-
+        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
         List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
 
-        backNodes.forEach(x -> {
-            System.out.printf("can back %s %s %s", x.getId(), x.getName(), "\n");
-        });
+        List<FlowNodeDto> flowNodeDtos = JoinUtils.sortInnerJoin(backNodes,
+                list,
+                Comparator.comparing(FlowNodeDto::getId),
+                Comparator.comparing(TaskInfo::getTaskDefinitionKey)
+                , (a, b) -> a.getId().compareTo(b.getTaskDefinitionKey()),
+                (a, b) -> a);
+        flowNodeDtos.forEach(x -> System.out.printf("can back %s %s %s", x.getId(), x.getName(), "\n"));
 
-        return backNodes;
+        return flowNodeDtos;
     }
 
     public void return2Node(String from, String to) {

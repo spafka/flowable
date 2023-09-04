@@ -9,16 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.flowable.bpmn.model.*;
 import org.flowable.common.engine.impl.cfg.IdGenerator;
-import org.flowable.engine.ManagementService;
-import org.flowable.engine.ProcessEngineConfiguration;
-import org.flowable.engine.RuntimeService;
-import org.flowable.engine.TaskService;
+import org.flowable.engine.*;
 import org.flowable.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
 import org.flowable.engine.impl.persistence.entity.ExecutionEntityImpl;
 import org.flowable.engine.impl.persistence.entity.ExecutionEntityManager;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.task.api.Task;
+import org.flowable.task.api.TaskInfo;
+import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,6 +43,8 @@ public class MainReturnService implements ReturnService {
     private ManagementService managementService;
     @Autowired
     JdbcTemplate jdbcTemplate;
+    @Autowired
+    HistoryService historyService;
 
     @Override
     public List<FlowNodeDto> getCanRejectedFlowNode(BpmnModel bpmnModel, String instanceId, String processInstanceId) {
@@ -78,11 +79,23 @@ public class MainReturnService implements ReturnService {
 
         }
 
-        return processed
+        List<FlowNodeDto> backNodes = processed
                 .stream()
                 .filter(x -> x.node instanceof UserTask)
                 .map(x -> new FlowNodeDto(x.node.getId(), x.node.getName()))
                 .collect(Collectors.toList());
+
+
+        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
+
+        List<FlowNodeDto> flowNodeDtos = JoinUtils.sortInnerJoin(backNodes,
+                list,
+                Comparator.comparing(FlowNodeDto::getId),
+                Comparator.comparing(TaskInfo::getTaskDefinitionKey)
+                , (a, b) -> a.getId().compareTo(b.getTaskDefinitionKey()),
+                (a, b) -> a);
+
+        return flowNodeDtos;
     }
 
     @Override
