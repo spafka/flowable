@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
+             id="Definitions_1">
+    <process id="leaveProcess" name="Leave Process" isExecutable="true">
+
+        <!-- Start Event -->
+        <startEvent id="startEvent" name="Start">
+            <outgoing>leaveRequestsFlow</outgoing>
+        </startEvent>
+
+        <!-- Parallel Gateway for Leave Requests -->
+        <parallelGateway id="leaveRequestsGateway" name="Leave Requests">
+            <incoming>leaveRequestsFlow</incoming>
+            <outgoing>splitFlow1</outgoing>
+            <outgoing>splitFlow2</outgoing>
+        </parallelGateway>
+
+        <!-- Splitting the flow -->
+        <sequenceFlow id="splitFlow1" name="Flow 1" sourceRef="leaveRequestsGateway" targetRef="leaveApprovalTask"></sequenceFlow>
+        <sequenceFlow id="splitFlow2" name="Flow 2" sourceRef="leaveRequestsGateway" targetRef="leaveRejectionTask"></sequenceFlow>
+
+        <!-- Leave Approval User Task -->
+        <userTask id="leaveApprovalTask" name="Leave Approval Task">
+            <incoming>splitFlow1</incoming>
+            <outgoing>joinFlow</outgoing>
+        </userTask>
+
+        <!-- Timer Intermediate Catch Event -->
+        <intermediateCatchEvent id="timerEvent" name="Timer Event">
+            <timerEventDefinition>
+                <timeCycle>R/PT8H</timeCycle> <!-- Repeat every 8 hours -->
+            </timerEventDefinition>
+            <incoming>splitFlow2</incoming>
+            <outgoing>timerTask</outgoing>
+        </intermediateCatchEvent>
+
+        <!-- Timer Task -->
+        <serviceTask id="timerTask" name="Timer Task">
+            <extensionElements>
+                <flowable:executionListener event="start" class="com.example.TimerTaskListener"></flowable:executionListener>
+            </extensionElements>
+            <incoming>timerTask</incoming>
+            <outgoing>joinFlow</outgoing>
+        </serviceTask>
+
+        <!-- Leave Rejection User Task -->
+        <userTask id="leaveRejectionTask" name="Leave Rejection Task">
+            <incoming>splitFlow2</incoming>
+            <outgoing>joinFlow</outgoing>
+        </userTask>
+
+        <!-- Joining the flow -->
+        <parallelGateway id="joinGateway" name="Join">
+            <incoming>joinFlow</incoming>
+            <outgoing>leaveTaskFlow</outgoing>
+        </parallelGateway>
+
+        <!-- Leave Task -->
+        <userTask id="leaveTask" name="Leave Task">
+            <incoming>leaveTaskFlow</incoming>
+            <outgoing>endEvent</outgoing>
+        </userTask>
+
+        <!-- End Event -->
+        <endEvent id="endEvent" name="End">
+            <incoming>endEventFlow</incoming>
+        </endEvent>
+
+        <!-- Sequence Flows -->
+        <sequenceFlow id="leaveRequestsFlow" sourceRef="startEvent" targetRef="leaveRequestsGateway"></sequenceFlow>
+        <sequenceFlow id="joinFlow" sourceRef="leaveApprovalTask" targetRef="joinGateway"></sequenceFlow>
+        <sequenceFlow id="timerTask" sourceRef="timerEvent" targetRef="timerTask"></sequenceFlow>
+        <sequenceFlow id="leaveTaskFlow" sourceRef="joinGateway" targetRef="leaveTask"></sequenceFlow>
+        <sequenceFlow id="endEventFlow" sourceRef="leaveTask" targetRef="endEvent"></sequenceFlow>
+
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+        <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="leaveProcess">
+            <bpmndi:BPMNShape id="Shape_startEvent" bpmnElement="startEvent">
+                <omgdc:Bounds x="150" y="150" width="30" height="30"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_leaveRequestsGateway" bpmnElement="leaveRequestsGateway">
+                <omgdc:Bounds x="250" y="152" width="40" height="40"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_leaveApprovalTask" bpmnElement="leaveApprovalTask">
+                <omgdc:Bounds x="355" y="132" width="80" height="80"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_timerEvent" bpmnElement="timerEvent">
+                <omgdc:Bounds x="320" y="230" width="30" height="30"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_timerTask" bpmnElement="timerTask">
+                <omgdc:Bounds x="355" y="230" width="80" height="80"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_leaveRejectionTask" bpmnElement="leaveRejectionTask">
+                <omgdc:Bounds x="465" y="130" width="80" height="80"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_joinGateway" bpmnElement="joinGateway">
+                <omgdc:Bounds x="565" y="152" width="40" height="40"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_leaveTask" bpmnElement="leaveTask">
+                <omgdc:Bounds x="665" y="132" width="80" height="80"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Shape_endEvent" bpmnElement="endEvent">
+                <omgdc:Bounds x="765" y="152" width="30" height="30"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge id="BPMNEdge_leaveRequestsFlow" bpmnElement="leaveRequestsFlow">
+                <omgdi:waypoint x="180" y="165"></omgdi:waypoint>
+                <omgdi:waypoint x="250" y="170"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_splitFlow1" bpmnElement="splitFlow1">
+                <omgdi:waypoint x="290" y="172"></omgdi:waypoint>
+                <omgdi:waypoint x="355" y="172"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_splitFlow2" bpmnElement="splitFlow2">
+                <omgdi:waypoint x="270" y="212"></omgdi:waypoint>
+                <omgdi:waypoint x="270" y="230"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_joinFlow" bpmnElement="joinFlow">
+                <omgdi:waypoint x="405" y="172"></omgdi:waypoint>
+                <omgdi:waypoint x="525" y="172"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_leaveTaskFlow" bpmnElement="leaveTaskFlow">
+                <omgdi:waypoint x="605" y="172"></omgdi:waypoint>
+                <omgdi:waypoint x="685" y="172"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_endEventFlow" bpmnElement="endEventFlow">
+                <omgdi:waypoint x="745" y="172"></omgdi:waypoint>
+                <omgdi:waypoint x="765" y="170"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_timerTask" bpmnElement="timerTask">
+                <omgdi:waypoint x="335" y="245"></omgdi:waypoint>
+                <omgdi:waypoint x="355" y="245"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

@@ -134,7 +134,7 @@ public class FlowBase {
         Task task;
         List<Task> all = taskService.createTaskQuery().list();
 
-        task = all.stream().filter(x -> x.getName().equals(taskName) || Objects.isNull(taskName)).findFirst().get();
+        task = all.stream().filter(x -> x.getName().equals(taskName) || Objects.isNull(taskName) || x.getTaskDefinitionKey().equals(taskName)).findFirst().get();
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
         List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
 

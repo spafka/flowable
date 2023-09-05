@@ -1,4 +1,4 @@
-package io.github.spafka.flowable;
+package io.github.spafka.flowable.join;
 
 import io.github.spafka.flowable.core.JoinUtils;
 import io.github.spafka.util.Utils;

@@ -10,6 +10,7 @@ import org.flowable.common.engine.api.delegate.event.FlowableEngineEventType;
 import org.flowable.common.engine.api.delegate.event.FlowableEvent;
 import org.flowable.common.engine.api.delegate.event.FlowableEventDispatcher;
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener;
+import org.flowable.engine.delegate.event.impl.FlowableEntityEventImpl;
 import org.flowable.engine.delegate.event.impl.FlowableEntityWithVariablesEventImpl;
 import org.flowable.engine.impl.db.DbIdGenerator;
 import org.flowable.spring.SpringExpressionManager;
@@ -132,7 +133,10 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
             @Override
             public void onEvent(FlowableEvent flowableEvent) {
 
-                System.err.println(flowableEvent.getType()+"任务完成");
+                String processInstanceId = ((FlowableEntityEventImpl) flowableEvent).getProcessInstanceId();
+                System.err.println(processInstanceId + "任务完成");
+
+                log.info("{} 任务完成", processInstanceId);
             }
 
             @Override

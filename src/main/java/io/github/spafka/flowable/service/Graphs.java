@@ -13,6 +13,7 @@ import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,6 +23,7 @@ public class Graphs {
     public static Tuple3<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>> backStace(BpmnModel bpmnModel, String lastNode, String beforeNode) {
 
         Process process = bpmnModel.getMainProcess();
+
 
         Collection<FlowElement> flowElements = process.getFlowElements().stream().flatMap(flowElement -> {
             if (flowElement instanceof SubProcess) {
@@ -41,21 +43,89 @@ public class Graphs {
         if (StringUtils.isBlank(beforeNode)) {
             beforeNode = start.getId();
         }
+        if (StringUtils.isBlank(lastNode)) {
+            FlowElement flowElement = process.getFlowElements().stream().filter(x -> x instanceof EndEvent).findFirst().get();
+            lastNode = flowElement.getId();
+        }
 
         assert idMap.containsKey(lastNode);
         assert idMap.containsKey(beforeNode);
 
-        Map<String, TopologyNode<FlowElement>> indexMap = new HashMap<>();
+        Map<String, TopologyNode<FlowElement>> indexMap = new LinkedHashMap<>();
         indexMap.put(start.getId(), root);
 
         flowElements.forEach(x -> {
             if (x instanceof SequenceFlow) {
-                TopologyNode<FlowElement> source = indexMap.computeIfAbsent(((SequenceFlow) x).getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
-                TopologyNode<FlowElement> target = indexMap.computeIfAbsent(((SequenceFlow) x).getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
-                source.addNext(target);
-                target.addSource(source);
+                TopologyNode<FlowElement> pre = indexMap.computeIfAbsent(((SequenceFlow) x).getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
+                TopologyNode<FlowElement> next = indexMap.computeIfAbsent(((SequenceFlow) x).getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
+                pre.addNext(next);
+                next.addSource(pre);
+
+                FlowElement node = pre.node;
+
+
             }
         });
+
+        AtomicReference<String> mainStart = new AtomicReference<>("");
+        AtomicReference<String> mainEnd = new AtomicReference<>("");
+
+        indexMap.forEach((k, v) -> {
+            if (v.node instanceof StartEvent) {
+
+                StartEvent node = (StartEvent) v.node;
+                FlowElementsContainer parentContainer = node.getParentContainer();
+
+                if (parentContainer instanceof Process) {
+                    mainStart.set(node.getId());
+                }
+                // 子流程起始节点
+                if (parentContainer instanceof SubProcess) {
+                    String id = ((SubProcess) parentContainer).getId();
+                    indexMap.get(id).addNext(v);
+                    v.addSource(indexMap.get(id));
+                }
+            }
+            if (v.node instanceof EndEvent) {
+
+                EndEvent node = (EndEvent) v.node;
+                FlowElementsContainer parentContainer = node.getParentContainer();
+
+                if (parentContainer instanceof Process) {
+                    mainEnd.set(node.getId());
+                }
+
+            }
+        });
+
+        indexMap.forEach((k, v) -> {
+            if (v.node instanceof SubProcess) {
+                SubProcess node = (SubProcess) v.node;
+
+                TopologyNode<FlowElement> subNode = indexMap.get(node.getId());
+
+                List<FlowElement> endEvents = node.getFlowElements().stream().filter(x -> x instanceof EndEvent).collect(Collectors.toList());
+
+                // 不是起点任务 ToDo
+                List<TopologyNode<FlowElement>> collect = subNode.next.stream().filter(x -> !(x.node instanceof StartEvent)).collect(Collectors.toList());
+
+
+                endEvents.forEach(x -> {
+                    subNode.next.remove(indexMap.get(x.getId()));
+                    collect.forEach(y -> {
+                        y.pre.remove(subNode);
+                        indexMap.get(x.getId()).addNext(y);
+                    });
+
+
+                });
+
+                subNode.next.removeAll(collect);
+
+                System.out.println();
+            }
+        });
+
 
         FlowElement endNode = flowElements.stream().filter(x -> x instanceof EndEvent).findFirst().get();
 
@@ -67,7 +137,7 @@ public class Graphs {
         path.removeLast();
 
         List<LinkedList<TopologyNode<FlowElement>>> paths = new ArrayList<>();
-        findPath(indexMap, indexMap.get(beforeNode).node.getId(), indexMap.get(lastNode).node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
+        findPathFromBehind(indexMap, indexMap.get(beforeNode).node.getId(), indexMap.get(lastNode).node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
         JumpTypeEnum jumpTypeEnum = judgeJumpType(paths, indexMap.get(beforeNode), indexMap.get(lastNode));
 
         Set<FlowElement> toAddExecution = new HashSet<>();
@@ -79,7 +149,7 @@ public class Graphs {
             var currentTaskNode = paths.get(0).getFirst();
             List<TopologyNode<FlowElement>> innergateway = new LinkedList<>();
 
-                    joinGateways.stream()
+            joinGateways.stream()
                     .filter(x -> {
                         if (x.join != null) {
                             TopologyNode join = x.join;
@@ -122,7 +192,7 @@ public class Graphs {
                 List<LinkedList<TopologyNode<FlowElement>>> paths = new ArrayList<>();
 
 
-                findPath(indexMap, parallable.node.getId(), endNode.getId(), paths, new LinkedList<>(), Sets.newHashSet());
+                findPathFromBehind(indexMap, parallable.node.getId(), endNode.getId(), paths, new LinkedList<>(), Sets.newHashSet());
 
                 List<TopologyNode<FlowElement>> pgs = paths.stream().flatMap(x -> x.stream().filter(y -> y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway)).distinct().collect(Collectors.toList());
 
@@ -132,7 +202,7 @@ public class Graphs {
                     }
                     log.info("判断 {} 是否是 {}'s join", pg.node.getId(), parallable.node.getId());
                     paths = new ArrayList<>();
-                    findPath(indexMap, parallable.node.getId(), pg.node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
+                    findPathFromBehind(indexMap, parallable.node.getId(), pg.node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
 
                     List<SequenceFlow> outgoingFlows = parallelGateway.getOutgoingFlows();
                     Boolean reduce = outgoingFlows.stream().map(x -> FlowableUtils.isReachable(process, x.getId(), pg.node.getId())).reduce(true, (a, b) -> a && b);
@@ -174,8 +244,9 @@ public class Graphs {
         return !topologyNode.forks.isEmpty();
     }
 
-    public static void findPath(Map<String, TopologyNode<FlowElement>> nodeMap, String startId, String endId, List<LinkedList<TopologyNode<FlowElement>>> res, LinkedList<TopologyNode<FlowElement>> path, Set<String> visited) {
-        log.trace("{} {} {} {}", startId, endId, path, visited);
+    public static void findPathFromBehind(Map<String, TopologyNode<FlowElement>> nodeMap, String startId, String endId, List<LinkedList<TopologyNode<FlowElement>>> res, LinkedList<TopologyNode<FlowElement>> path, Set<FlowElement> visited) {
+        log.info("{} {} {} {}", startId, endId, path, visited);
+
         if (path.isEmpty()) {
             path.addFirst(nodeMap.get(endId));
         }
@@ -185,15 +256,17 @@ public class Graphs {
         if (visited.contains(startId)) {
             return;
         }
-        TopologyNode<FlowElement> node = nodeMap.get(endId);
-        TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> pre = node.pre;
+        TopologyNode<FlowElement> currentNode = nodeMap.get(endId);
+        TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> pre = currentNode.pre;
+        if (visited.contains(currentNode.node)) {
+            return;
+        }
+        visited.add(currentNode.node);
 
-        for (TopologyNode<FlowElement> topologyNode : pre) {
-            path.addLast(topologyNode);
-            visited.add(topologyNode.node.getId());
-            findPath(nodeMap, startId, topologyNode.node.getId(), res, path, visited);
-            visited.remove(topologyNode.node.getId());
-            path.removeLast();
+        for (TopologyNode<FlowElement> preNode : pre) {
+            path.addLast(preNode);
+            findPathFromBehind(nodeMap, startId, preNode.node.getId(), res, path, visited);
+
         }
 
 

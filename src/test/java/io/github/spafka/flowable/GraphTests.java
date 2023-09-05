@@ -1,8 +1,9 @@
-package io.github.spafka.flowable.returnTests;
+package io.github.spafka.flowable;
 
 import io.github.spafka.flowable.JumpTypeEnum;
 import io.github.spafka.flowable.core.TopologyNode;
 import io.github.spafka.flowable.service.Graphs;
+import io.vavr.Tuple3;
 import lombok.var;
 import org.flowable.bpmn.converter.BpmnXMLConverter;
 import org.flowable.bpmn.model.*;
@@ -95,4 +96,14 @@ public class GraphTests {
 
     }
 
+
+    @Test
+    public void testSupos(){
+        String xml="src/main/resources/bpmn/回归测试.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        Tuple3<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>> jumpTypeEnumListSetTuple3 = Graphs.backStace(bpmnModel, "EndEvent_1621823740971", "");
+        System.out.println();
+
+    }
 }
