@@ -11,6 +11,10 @@ public enum JumpTypeEnum {
      * 并行
      */
     paral,
+    /**
+     * 跳到父流程
+     */
+    subToParentProcess,
 
     /**
      * 未知类型

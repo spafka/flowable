@@ -2,6 +2,7 @@ package io.github.spafka.flowable.returnTests;
 
 import io.github.spafka.flowable.FlowBase;
 import io.github.spafka.flowable.core.FlowService;
+import io.github.spafka.flowable.service.FlowNodeDto;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.engine.*;
@@ -18,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -45,14 +47,14 @@ public class SubProcessTests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "嵌套子流程";
+    String processName = "嵌套子流程2";
 
     static int i = 0;
 
     @Test
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/嵌套子流程.bpmn20.xml")
+                .addClasspathResource("returntest/嵌套子流程2.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -76,8 +78,9 @@ public class SubProcessTests extends FlowBase {
 
 
         Map<String, Object> variables = new HashMap<>();
-        variables.put("days", 3);
+        variables.put("days", 22);
         variables.put("initiator", "whf");
+        variables.put("INITIATOR", "whf");
 
         variables.put("status", "approve");
         variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
@@ -106,11 +109,18 @@ public class SubProcessTests extends FlowBase {
 
 
     @Test
-    public void test() {
+    public void test_ok() {
         deploy();
         submit();
+        complete("whf","T3");
+        complete("whf","T4");
+        complete("whf","T5");
+        return2Node("T6","T4");
+        complete("whf","T4");
+        complete("whf","T6");
 
-        listCanRetuen("T3");
+        complete("whf","T2");
+        complete("whf","T8");
 
         assert listall().isEmpty();
 
@@ -119,19 +129,17 @@ public class SubProcessTests extends FlowBase {
     public void okshould_case1() {
         deploy();
         submit();
-        complete("whf", "T2");
-        complete("whf", "T4");
-        complete("whf", "T5");
-        complete("whf", "T6");
+        complete("whf","T2");
+        complete("whf","T3");
+        complete("whf","T4");
+        complete("whf","T5");
+        return2Node("T6","T4");
+        complete("whf","T4");
+        complete("whf","T6");
 
 
-        complete("whf", "T3");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
-        complete("whf", "T7");
-        return2Node("T8","T7");
-        complete("whf", "T7");
-        complete("whf", "T8");
+        complete("whf","T8");
+
         assert listall().isEmpty();
 
     }
@@ -140,20 +148,20 @@ public class SubProcessTests extends FlowBase {
     public void okshould_case2() {
         deploy();
         submit();
-        complete("whf", "T2");
-        complete("whf", "T4");
-        complete("whf", "T5");
-        complete("whf", "T6");
+        complete("whf","T2");
+        complete("whf","T3");
+        complete("whf","T4");
+        complete("whf","T5");
+        return2Node("T6","T1");
+        complete("whf","T1");
+        complete("whf","T2");
+        complete("whf","T3");
+        complete("whf","T4");
+        complete("whf","T5");
+        complete("whf","T6");
+        complete("whf","T8");
 
-
-        complete("whf", "T3");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
-        complete("whf", "T7");
-        return2Node("T8","T5");
-        complete("whf", "T5");
-        complete("whf", "T7");
-        complete("whf", "T8");
+        assert listall().isEmpty();
         assert listall().isEmpty();
 
     }

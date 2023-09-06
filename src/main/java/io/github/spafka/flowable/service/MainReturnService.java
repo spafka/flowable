@@ -49,7 +49,7 @@ public class MainReturnService implements ReturnService {
     @Override
     public List<FlowNodeDto> getCanRejectedFlowNode(BpmnModel bpmnModel, String instanceId, String processInstanceId) {
         Task task = taskService.createTaskQuery().taskId(instanceId).singleResult();
-        Tuple3<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>> tuple3 = Graphs.backStace(bpmnModel, task.getTaskDefinitionKey(), null);
+        Tuple3<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>> tuple3 = Graphs.backTrack(bpmnModel, task.getTaskDefinitionKey(), null);
 
         LinkedList<TopologyNode<FlowElement>> one = tuple3._2.get(0);
 
@@ -107,21 +107,56 @@ public class MainReturnService implements ReturnService {
 
         List<Execution> executions = runtimeService.createExecutionQuery().parentId(task.getProcessInstanceId()).list();
 
-        var tuple = Graphs.backStace(model, task.getTaskDefinitionKey(), targetId);
+        var tuple = Graphs.backTrack(model, task.getTaskDefinitionKey(), targetId);
         List<TopologyNode> collect = tuple._2().stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
 
-        if (tuple._1 == JumpTypeEnum.serial || tuple._1 == JumpTypeEnum.paral) {
+
+        if (tuple._1 == JumpTypeEnum.serial) {
+            log.info("驳回方式驳{}", tuple._1.name());
+
+            runtimeService.createChangeActivityStateBuilder()
+                    .processInstanceId(task.getProcessInstanceId())
+                    .moveActivityIdTo(task.getTaskDefinitionKey(), targetId)
+                    .changeState();
+        }
+        if (tuple._1 == JumpTypeEnum.subToParentProcess) {
+            log.info("驳回方式驳{}", tuple._1.name());
+            runtimeService.createChangeActivityStateBuilder()
+                    .moveActivityIdToParentActivityId(task.getTaskDefinitionKey(), targetId)
+                    .processInstanceId(task.getProcessInstanceId())
+                    .changeState();
+
+//            String subProcessInstanceId = runtimeService.createProcessInstanceQuery()
+//                    .superProcessInstanceId(task.getProcessInstanceId())
+//                    .singleResult()
+//                    .getId();
+//
+//            Execution subProcessExecution = runtimeService.createExecutionQuery()
+//                    .processInstanceId(subProcessInstanceId)
+//                    .singleResult();
+//            runtimeService.createChangeActivityStateBuilder()
+//                    .moveExecutionToActivityId(subProcessExecution.getId(), targetId)
+//                    .changeState();
+
+
+        }
+
+
+        if (tuple._1 == JumpTypeEnum.paral) {
 
             log.info("驳回方式驳{}", tuple._1.name());
             TopologyNode<FlowElement> topologyNode = collect.get(collect.size() - 1);
 
-            LinkedList<LinkedList<FlowElement>> paths2 = new LinkedList<>();
-            Graphs.currentToEnd(topologyNode, new LinkedList<>(), paths2);
-            List<FlowElement> toEnd = paths2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
-            List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
+            LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
 
+            Graphs.currentToEndAllPath(topologyNode, new LinkedList<>(), pathToEnd);
+
+
+            List<FlowElement> toEnd = pathToEnd.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+            List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
             log.info("当前executions {} {}", executionIds, executions);
             runtimeService.createChangeActivityStateBuilder()
+                    .processInstanceId(task.getProcessInstanceId())
                     .moveExecutionsToSingleActivityId(executionIds, targetId)
                     .changeState();
 

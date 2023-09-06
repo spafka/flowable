@@ -14,7 +14,7 @@ public class TopologyNode<T extends FlowElement> implements Comparable<TopologyN
 
     public SkipList<TopologyNode<T>> gateways = new SkipList<>();
 
-   public Set<TopologyNode<FlowElement>> forks = new HashSet<>();
+   public Set<TopologyNode<T>> forks = new HashSet<>();
    public TopologyNode join;
 
     public TopologyNode(T node) {
@@ -44,7 +44,11 @@ public class TopologyNode<T extends FlowElement> implements Comparable<TopologyN
     public void addGate(TopologyNode<T> gate) {
         gateways.add(gate);
     }
+    public void addFork(TopologyNode<T> gate) {
 
+        gateways.add(gate);
+        forks.add(gate);
+    }
     public void addNext(TopologyNode<T> source) {
         next.add(source);
     }
