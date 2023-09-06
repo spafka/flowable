@@ -121,10 +121,20 @@ public class MainReturnService implements ReturnService {
         }
         if (tuple._1 == JumpTypeEnum.subToParentProcess) {
             log.info("驳回方式驳{}", tuple._1.name());
+
+            Execution executionTask = runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
+            String parentId = executionTask.getParentId();
+            List<Execution> executions2 = runtimeService.createExecutionQuery().parentId(parentId).list();
+            List<String> executionIds = new ArrayList<>();
+
+            executions2.forEach(execution -> executionIds.add(execution.getId()));
             runtimeService.createChangeActivityStateBuilder()
-                    .moveActivityIdToParentActivityId(task.getTaskDefinitionKey(), targetId)
-                    .processInstanceId(task.getProcessInstanceId())
+                    .moveExecutionsToSingleActivityId(executionIds, targetId)
                     .changeState();
+            //runtimeService.createChangeActivityStateBuilder()
+//                    .moveActivityIdToParentActivityId(task.getTaskDefinitionKey(), targetId)
+//                    .processInstanceId(task.getProcessInstanceId())
+//                    .changeState();
 
 //            String subProcessInstanceId = runtimeService.createProcessInstanceQuery()
 //                    .superProcessInstanceId(task.getProcessInstanceId())
