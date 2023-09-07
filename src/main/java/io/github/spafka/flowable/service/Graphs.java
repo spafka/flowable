@@ -106,14 +106,12 @@ public class Graphs {
                  * 子流程的出节点
                  */
                 List<TopologyNode<FlowElement>> subProcessOutNodes = subNode.next.stream().filter(x -> !(x.node instanceof StartEvent)).collect(Collectors.toList());
-                endEvents.forEach(x -> {
-                    subProcessOutNodes.forEach(y -> {
-                        y.pre.remove(subNode);
-                        indexMap.get(x.getId()).addNext(y);
-                    });
-                });
+                endEvents.forEach(x -> subProcessOutNodes.forEach(y -> {
+                    y.pre.remove(subNode);
+                    indexMap.get(x.getId()).addNext(y);
+                }));
 
-                subNode.next.removeAll(subProcessOutNodes);
+                subProcessOutNodes.forEach(subNode.next::remove);
             }
         });
 
@@ -141,7 +139,7 @@ public class Graphs {
             joinGateways.stream()
                     .filter(x -> {
                         if (x.join != null) {
-                            TopologyNode join = x.join;
+                            TopologyNode<FlowElement> join = x.join;
                             if (joinGateways.contains(join)) {
                                 innerGateway.add(x);
                                 innerGateway.add(x.join);
@@ -149,10 +147,8 @@ public class Graphs {
                         }
 
                         return false;
-                    })
-                    .collect(Collectors.toList());
+                    }).count();
             joinGateways.removeAll(innerGateway);
-
             joinGateways.forEach(gates -> {
                 List<SequenceFlow> incomingFlows = ((Gateway) gates.node).getIncomingFlows();
                 for (SequenceFlow seq : incomingFlows) {
@@ -163,7 +159,6 @@ public class Graphs {
                 }
                 toAddExecution.add(gates.node);
             });
-            System.out.println();
         }
         return Tuple.of(jumpTypeEnum, paths, toAddExecution);
     }
@@ -201,20 +196,16 @@ public class Graphs {
                         if (reduce) {
                             log.info("判断 {} 是 {}'s join", pg.node.getId(), parallable.node.getId());
 
-                            paths.forEach(x -> {
-                                x.stream()
-                                        .filter(y -> y != parallable)
-                                        .filter(y -> (y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway))
-                                        .forEach(y -> {
-                                            y.addFork(parallable);
-                                        });
-                            });
-                            paths.forEach(x -> {
-                                x.stream().filter(y -> !(y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway))
-                                        .forEach(y -> {
-                                            y.addGate(parallable);
-                                        });
-                            });
+                            paths.forEach(x -> x.stream()
+                                    .filter(y -> y != parallable)
+                                    .filter(y -> (y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway))
+                                    .forEach(y -> {
+                                        y.addFork(parallable);
+                                    }));
+                            paths.forEach(x -> x.stream().filter(y -> !(y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway))
+                                    .forEach(y -> {
+                                        y.addGate(parallable);
+                                    }));
                             parallable.join = pg;
                         }
                     }
@@ -253,6 +244,7 @@ public class Graphs {
             path.addLast(preNode);
             findPathFromBehind(nodeMap, startId, preNode.node.getId(), res, path, visited);
 
+            path.removeLast();
         }
 
 
@@ -273,7 +265,9 @@ public class Graphs {
          */
 
         if (before.gateways.isEmpty()) {
-            if (paths.stream().anyMatch(x->x.stream().anyMatch(y-> y.node instanceof SubProcess))){
+
+            if (paths.stream().anyMatch(x -> x.stream().anyMatch(y -> y.node instanceof SubProcess))) {
+                assert later.node.getParentContainer() != before.node.getParentContainer();
                 return JumpTypeEnum.subToParentProcess;
             }
             return JumpTypeEnum.serial;
@@ -291,6 +285,7 @@ public class Graphs {
          *
          */
         if (later.gateways.containsAll(before.gateways)) {
+            assert later.node.getParentContainer() == before.node.getParentContainer();
             return JumpTypeEnum.serial;
         }
 

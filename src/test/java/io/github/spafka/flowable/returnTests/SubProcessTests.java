@@ -10,8 +10,10 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,15 +29,13 @@ import java.util.Objects;
  * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
  */
 @SpringBootTest
-@RunWith(value = SpringRunner.class)
+
 public class SubProcessTests extends FlowBase {
 
     private static final String key = "pg01";
 
     @Autowired
     DataSource dataSource;
-    @Resource
-    protected HistoryService historyService;
     @Autowired
     ProcessEngine processEngine;
     @Autowired
@@ -52,6 +52,7 @@ public class SubProcessTests extends FlowBase {
     static int i = 0;
 
     @Test
+
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
                 .addClasspathResource("returntest/嵌套子流程2.bpmn20.xml")
@@ -109,6 +110,7 @@ public class SubProcessTests extends FlowBase {
 
 
     @Test
+    @DisplayName("子流程内跳转")
     public void test_ok() {
         deploy();
         submit();
@@ -126,6 +128,7 @@ public class SubProcessTests extends FlowBase {
 
     }
     @Test
+    @DisplayName("子流程内跳转2")
     public void okshould_case1() {
         deploy();
         submit();
@@ -145,6 +148,7 @@ public class SubProcessTests extends FlowBase {
     }
 
     @Test
+    @DisplayName("子流程内跳转至父流程路径上")
     public void okshould_case2() {
         deploy();
         submit();
@@ -162,7 +166,7 @@ public class SubProcessTests extends FlowBase {
         complete("whf","T8");
 
         assert listall().isEmpty();
-        assert listall().isEmpty();
+
 
     }
 

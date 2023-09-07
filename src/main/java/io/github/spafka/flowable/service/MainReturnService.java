@@ -119,40 +119,23 @@ public class MainReturnService implements ReturnService {
                     .moveActivityIdTo(task.getTaskDefinitionKey(), targetId)
                     .changeState();
         }
-        if (tuple._1 == JumpTypeEnum.subToParentProcess) {
-            log.info("驳回方式驳{}", tuple._1.name());
-
-            Execution executionTask = runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
-            String parentId = executionTask.getParentId();
-            List<Execution> executions2 = runtimeService.createExecutionQuery().parentId(parentId).list();
-            List<String> executionIds = new ArrayList<>();
-
-            executions2.forEach(execution -> executionIds.add(execution.getId()));
-            runtimeService.createChangeActivityStateBuilder()
-                    .moveExecutionsToSingleActivityId(executionIds, targetId)
-                    .changeState();
-            //runtimeService.createChangeActivityStateBuilder()
-//                    .moveActivityIdToParentActivityId(task.getTaskDefinitionKey(), targetId)
-//                    .processInstanceId(task.getProcessInstanceId())
-//                    .changeState();
-
-//            String subProcessInstanceId = runtimeService.createProcessInstanceQuery()
-//                    .superProcessInstanceId(task.getProcessInstanceId())
-//                    .singleResult()
-//                    .getId();
+//        if (tuple._1 == JumpTypeEnum.subToParentProcess) {
+//            log.info("驳回方式驳{}", tuple._1.name());
 //
-//            Execution subProcessExecution = runtimeService.createExecutionQuery()
-//                    .processInstanceId(subProcessInstanceId)
-//                    .singleResult();
+//            Execution executionTask = runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
+//            String parentId = executionTask.getParentId();
+//            List<Execution> executions2 = runtimeService.createExecutionQuery().parentId(parentId).list();
+//            List<String> executionIds = new ArrayList<>();
+//
+//            executions2.forEach(execution -> executionIds.add(execution.getId()));
 //            runtimeService.createChangeActivityStateBuilder()
-//                    .moveExecutionToActivityId(subProcessExecution.getId(), targetId)
+//                    .moveExecutionsToSingleActivityId(executionIds, targetId)
 //                    .changeState();
+//
+//        }
 
 
-        }
-
-
-        if (tuple._1 == JumpTypeEnum.paral) {
+        if (tuple._1 == JumpTypeEnum.paral || tuple._1 == JumpTypeEnum.subToParentProcess) {
 
             log.info("驳回方式驳{}", tuple._1.name());
             TopologyNode<FlowElement> topologyNode = collect.get(collect.size() - 1);
@@ -162,7 +145,9 @@ public class MainReturnService implements ReturnService {
             Graphs.currentToEndAllPath(topologyNode, new LinkedList<>(), pathToEnd);
 
 
-            List<FlowElement> toEnd = pathToEnd.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+            List<FlowElement> toEnd = pathToEnd.stream().flatMap(Collection::stream)
+
+                    .distinct().collect(Collectors.toList());
             List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
             log.info("当前executions {} {}", executionIds, executions);
             runtimeService.createChangeActivityStateBuilder()
@@ -181,8 +166,9 @@ public class MainReturnService implements ReturnService {
                         return;
                     }
 
-                    if (runtimeService.createNativeExecutionQuery().sql(String.format("select * from act_ru_execution where PROC_INST_ID_='%s' and ACT_ID_='%s';", task.getProcessInstanceId(), x.getId())).list().isEmpty())
+                    if (runtimeService.createNativeExecutionQuery().sql(String.format("select * from act_ru_execution where PROC_INST_ID_='%s' and ACT_ID_='%s';", task.getProcessInstanceId(), x.getId())).list().isEmpty()) {
                         insertExecution(x.getId(), task.getProcessInstanceId(), task.getProcessDefinitionId(), task.getTenantId());
+                    }
                 }
             });
         }

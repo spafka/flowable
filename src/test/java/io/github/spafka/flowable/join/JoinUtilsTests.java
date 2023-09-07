@@ -3,7 +3,8 @@ package io.github.spafka.flowable.join;
 import io.github.spafka.flowable.core.JoinUtils;
 import io.github.spafka.util.Utils;
 import io.vavr.Tuple2;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Arrays;
 import java.util.List;

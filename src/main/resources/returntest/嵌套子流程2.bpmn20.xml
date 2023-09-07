@@ -18,7 +18,7 @@
       <incoming>Flow_1p002f9</incoming>
       <outgoing>Flow_1ynhra6</outgoing>
     </parallelGateway>
-    <subProcess id="Activity_1hcrwnk">
+    <subProcess id="subprocess">
       <incoming>Flow_0uf4vc4</incoming>
       <outgoing>Flow_1p002f9</outgoing>
       <startEvent id="Event_1gpuccv">
@@ -62,8 +62,8 @@
         <outgoing>Flow_1ip4x4y</outgoing>
       </parallelGateway>
     </subProcess>
-    <sequenceFlow id="Flow_0uf4vc4" sourceRef="G1" targetRef="Activity_1hcrwnk" />
-    <sequenceFlow id="Flow_1p002f9" sourceRef="Activity_1hcrwnk" targetRef="G2" />
+    <sequenceFlow id="Flow_0uf4vc4" sourceRef="G1" targetRef="subprocess" />
+    <sequenceFlow id="Flow_1p002f9" sourceRef="subprocess" targetRef="G2" />
     <userTask id="T1" name="T1" flowable:assignee="${INITIATOR}" flowable:userType="initiator">
       <incoming>Flow_1i6ntl4</incoming>
       <outgoing>Flow_101x41f</outgoing>
@@ -146,7 +146,7 @@
       <bpmndi:BPMNShape id="Activity_06bnw0v_di" bpmnElement="T8">
         <omgdc:Bounds x="1000" y="175" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1hcrwnk_di" bpmnElement="Activity_1hcrwnk" isExpanded="true">
+      <bpmndi:BPMNShape id="subprocess_di" bpmnElement="subprocess" isExpanded="true">
         <omgdc:Bounds x="195" y="360" width="915" height="300" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0t04y5x_di" bpmnElement="Flow_0t04y5x">

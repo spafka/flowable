@@ -1,20 +1,26 @@
-package io.github.spafka.flowable;
+package io.github.spafka.flowable.deep;
 
+import io.github.spafka.flowable.JumpTypeEnum;
 import io.github.spafka.flowable.core.TopologyNode;
 import io.github.spafka.flowable.service.Graphs;
 import io.vavr.Tuple3;
 import lombok.var;
 import org.flowable.bpmn.converter.BpmnXMLConverter;
-import org.flowable.bpmn.model.*;
+import org.flowable.bpmn.model.BpmnModel;
+import org.flowable.bpmn.model.FlowElement;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class GraphTests {
 
+
+    static String th = "3层并行网关";
 
     public BpmnModel init(String path) {
         return new BpmnXMLConverter().convertToBpmnModel(() -> {
@@ -30,7 +36,7 @@ public class GraphTests {
     @Test
     public void testSimple() {
 
-        BpmnModel bpmnModel = init("src/main/resources/returntest/简单并行网关.bpmn20.xml");
+        BpmnModel bpmnModel = init("src/main/resources/returntest/3层并行网关.bpmn20.xml");
 
         var jumpTypeEnum = Graphs.backTrack(bpmnModel, "T5", "T3");
 
@@ -99,7 +105,7 @@ public class GraphTests {
 
         BpmnModel bpmnModel = init("src/main/resources/returntest/复杂并行网关.bpmn20.xml");
 
-        var tuple = Graphs.backTrack(bpmnModel, "T5", "T2");
+        var tuple = Graphs.backTrack(bpmnModel, "T8", "T3");
 
         System.out.println();
 

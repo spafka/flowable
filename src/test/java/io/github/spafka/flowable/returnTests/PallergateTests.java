@@ -17,8 +17,9 @@ import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
  */
 @SpringBootTest
-@RunWith(value = SpringRunner.class)
+
 public class PallergateTests extends FlowBase {
 
     private static final String key = "pg01";
@@ -163,8 +164,8 @@ public class PallergateTests extends FlowBase {
         complete("whf", "T3");
         complete("whf", "T3-1");
         complete("whf", "T3-2");
-        complete("whf", "T7");
-        return2Node("T8","T5");
+
+        return2Node("T7","T5");
         complete("whf", "T5");
         complete("whf", "T7");
         complete("whf", "T8");
@@ -185,6 +186,121 @@ public class PallergateTests extends FlowBase {
         complete("whf", "T3");
         complete("whf", "T3-1");
         complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T4");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
+
+    }
+
+    @Test
+    public void okshould_case4() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T1");
+        complete("whf", "T1");
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
+
+    }
+
+    @Test
+    public void okshould_case5() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T1");
+        complete("whf", "T1");
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+
+        return2Node("T8","T3");
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
+
+    }
+
+
+    @Test
+    public void okshould_case6() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T1");
+        complete("whf", "T1");
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+
+        return2Node("T8","T3");
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+
         complete("whf", "T7");
         return2Node("T8","T4");
         complete("whf", "T4");

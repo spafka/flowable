@@ -1,47 +1,38 @@
-
 package io.github.spafka.flowable.returnTests;
 
 import io.github.spafka.flowable.FlowBase;
 import io.github.spafka.flowable.core.FlowService;
-import io.github.spafka.flowable.core.TopologyNode;
-import io.github.spafka.flowable.service.Graphs;
-import io.github.spafka.tuple.Tuple2;
-import io.github.spafka.util.JoinUtils;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
-import org.flowable.bpmn.model.BpmnModel;
-import org.flowable.bpmn.model.FlowElement;
-import org.flowable.engine.*;
+import org.flowable.engine.ProcessEngine;
+import org.flowable.engine.RepositoryService;
+import org.flowable.engine.RuntimeService;
+import org.flowable.engine.TaskService;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
-import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
- * @link {{src/main/resources/returntest/多路并行网关.bpmn20.xml}}
+ * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
  */
 @SpringBootTest
-@RunWith(value = SpringRunner.class)
-public class Pallergate4Tests extends FlowBase {
 
-    private static final String key = "multipg";
+public class SubProcess3Tests extends FlowBase {
+
+    private static final String key = "subprocess3";
 
     @Autowired
     DataSource dataSource;
-    @Resource
-    protected HistoryService historyService;
     @Autowired
     ProcessEngine processEngine;
     @Autowired
@@ -53,14 +44,15 @@ public class Pallergate4Tests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "多路并行网关";
+    String processName = "嵌套子流程3";
 
     static int i = 0;
 
+    @Test
 
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/多路并行网关.bpmn20.xml")
+                .addClasspathResource("returntest/嵌套子流程3.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -72,7 +64,7 @@ public class Pallergate4Tests extends FlowBase {
         System.out.println("processDefinition = " + processDefinition);
     }
 
-
+    @Test
     public void submit() {
 
 
@@ -84,8 +76,9 @@ public class Pallergate4Tests extends FlowBase {
 
 
         Map<String, Object> variables = new HashMap<>();
-        variables.put("days", 3);
+        variables.put("days", 22);
         variables.put("initiator", "whf");
+        variables.put("INITIATOR", "whf");
 
         variables.put("status", "approve");
         variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
@@ -106,65 +99,59 @@ public class Pallergate4Tests extends FlowBase {
 
 
     @Test
-    public void okshould() {
-        deploy();
-        submit();
-        complete("whf", "T2-1");
-        complete("whf", "T2-2");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
-
-        return2Node("T4", "T3-1");
-        complete("whf", "T3-1");
-        complete("whf", "T4");
-
-        assert listall().isEmpty();
+    public void trace() {
 
 
         System.out.println();
     }
 
-    // 暂时不行
+
     @Test
-    public void okshould_notokcurrent() {
+    @DisplayName("完整子流程")
+    public void test_ok() {
         deploy();
         submit();
-        complete("whf", "T2-1");
+        complete("whf", "T2");
         complete("whf", "T2-2");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
-
-        return2Node("T4", "T2-1");
-        complete("whf", "T2-1");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        // return2Node("T10","T3");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T10");
+        complete("whf", "T11");
+        complete("whf", "T12");
         complete("whf", "T4");
-
         assert listall().isEmpty();
 
-        System.out.println();
     }
 
     @Test
-    public void okshould_case3() {
+    @DisplayName("完整子流程")
+    public void test_ok2() {
         deploy();
         submit();
-        complete("whf", "T2-1");
+        complete("whf", "T2");
         complete("whf", "T2-2");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
-
-        return2Node("T4", "T1");
-        complete("whf", "T1");
-        complete("whf", "T2-1");
-        complete("whf", "T2-2");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+         return2Node("T10","T3");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T10");
+        complete("whf", "T11");
+        complete("whf", "T12");
         complete("whf", "T4");
         assert listall().isEmpty();
 
-
-        System.out.println();
     }
 
 

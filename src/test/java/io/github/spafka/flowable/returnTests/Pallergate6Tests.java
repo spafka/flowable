@@ -10,8 +10,7 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,15 +26,13 @@ import java.util.Objects;
  * @link {{src/main/resources/returntest/多路并行网关.bpmn20.xml}}
  */
 @SpringBootTest
-@RunWith(value = SpringRunner.class)
+
 public class Pallergate6Tests extends FlowBase {
 
     private static final String key = "pg03";
 
     @Autowired
     DataSource dataSource;
-    @Resource
-    protected HistoryService historyService;
     @Autowired
     ProcessEngine processEngine;
     @Autowired
