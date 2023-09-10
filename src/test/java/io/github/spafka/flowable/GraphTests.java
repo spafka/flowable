@@ -111,7 +111,7 @@ public class GraphTests {
         String xml = "src/main/resources/bpmn/回归测试.bpmn20.xml";
         BpmnModel bpmnModel = init(xml);
 
-        Tuple3<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>> jumpTypeEnumListSetTuple3 = Graphs.backTrack(bpmnModel, "EndEvent_1621823740971", "");
+        var  jumpTypeEnumListSetTuple3 = Graphs.backTrack(bpmnModel, "EndEvent_1621823740971", "");
         System.out.println();
 
     }
@@ -122,6 +122,26 @@ public class GraphTests {
         BpmnModel bpmnModel = init(xml);
 
         var r = Graphs.backTrack(bpmnModel, "T6", "T1");
+        System.out.println();
+
+    }
+
+    @Test
+    public void testSubProcess2() {
+        String xml = "src/main/resources/returntest/嵌套子流程3.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        var r = Graphs.backTrack(bpmnModel, "T4", "T11");
+        System.out.println();
+
+    }
+
+    @Test
+    public void testSubProcess3() {
+        String xml = "src/main/resources/returntest/嵌套相容子流程.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        var r = Graphs.backTrack(bpmnModel, "T4", "T11");
         System.out.println();
 
     }

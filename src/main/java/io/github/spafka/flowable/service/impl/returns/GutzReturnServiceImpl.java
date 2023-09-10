@@ -35,7 +35,7 @@ public class GutzReturnServiceImpl implements ReturnService {
     }
 
     @Override
-    public boolean returnToTarget(String taskId, String toId) {
+    public boolean returnToTarget(String taskId,String currentId, String toId) {
         BpmJumpForm bpmJumpForm = new BpmJumpForm();
         bpmJumpForm.setTaskId(taskId);
         bpmJumpForm.setTargetTaskDefineKes(Collections.singletonList(toId));

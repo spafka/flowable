@@ -9,9 +9,11 @@ import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.image.ProcessDiagramGenerator;
+import org.flowable.task.api.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -48,6 +50,8 @@ public class FlowService {
 
     @Autowired
     BpmnService bpmnService;
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
 
     /**
@@ -106,8 +110,16 @@ public class FlowService {
     }
 
 
-    public void backTask(String id, String to) {
+    public void backTask(String taskId, String to) {
 
-        returnService.returnToTarget(id, to);
+        Task task = taskService.createTaskQuery()
+                .taskId(taskId).singleResult();
+
+        returnService.returnToTarget(task.getProcessInstanceId(), task.getTaskDefinitionKey(), to);
+
+
+
+
+
     }
 }

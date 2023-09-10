@@ -131,8 +131,8 @@ public class SubProcess3Tests extends FlowBase {
     }
 
     @Test
-    @DisplayName("完整子流程")
-    public void test_ok2() {
+    @DisplayName("子流程拨回到主流程")
+    public void test_backup2main() {
         deploy();
         submit();
         complete("whf", "T2");
@@ -150,6 +150,111 @@ public class SubProcess3Tests extends FlowBase {
         complete("whf", "T11");
         complete("whf", "T12");
         complete("whf", "T4");
+        assert listall().isEmpty();
+
+    }
+
+    @Test
+    @DisplayName("完整子流程")
+    public void test_ok2() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T10");
+        complete("whf", "T11");
+        complete("whf", "T12");
+
+        return2Node("T2-2", "T1");
+        complete("whf", "T1");
+        complete("whf", "T2");
+        complete("whf", "T2-2");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T10");
+        complete("whf", "T11");
+        complete("whf", "T12");
+        complete("whf", "T4");
+
+        assert listall().isEmpty();
+
+    }
+
+    @Test
+    @DisplayName("子流程未完成 分支驳回")
+    public void test_ok3() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+
+
+        return2Node("T2-2", "T1");
+        complete("whf", "T1");
+        complete("whf", "T2");
+        complete("whf", "T2-2");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T10");
+        complete("whf", "T11");
+        complete("whf", "T12");
+        complete("whf", "T4");
+
+        assert listall().isEmpty();
+
+    }
+
+    @Test
+    @DisplayName("驳回到子流程")
+    public void test_ok4() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+
+
+        return2Node("T2-2", "T1");
+        complete("whf", "T1");
+        complete("whf", "T2");
+        complete("whf", "T2-2");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T3");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        complete("whf", "T9");
+        complete("whf", "T10");
+        complete("whf", "T11");
+        complete("whf", "T12");
+        return2Node("T4","T11");
+        complete("whf", "T11");
+        complete("whf", "T12");
+        complete("whf", "T4");
+
         assert listall().isEmpty();
 
     }

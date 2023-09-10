@@ -1,6 +1,7 @@
 package io.github.spafka.flowable.service.impl.returns;
 
 import lombok.extern.slf4j.Slf4j;
+import org.flowable.common.engine.impl.cfg.IdGenerator;
 import org.flowable.common.engine.impl.interceptor.Command;
 import org.flowable.common.engine.impl.interceptor.CommandContext;
 import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
@@ -15,9 +16,11 @@ import java.io.Serializable;
 public class SaveExecutionCmd implements Command<Void>, Serializable {
     private static final long serialVersionUID = 1L;
     protected ExecutionEntity entity;
+    private IdGenerator idGenerator;
 
-    public SaveExecutionCmd(ExecutionEntity entity) {
+    public SaveExecutionCmd(ExecutionEntity entity, IdGenerator idGenerator) {
         this.entity = entity;
+        this.idGenerator=idGenerator;
     }
 
     @Override

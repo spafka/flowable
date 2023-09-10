@@ -82,10 +82,17 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
         FlowableEventListener TASK_COMPLETED = new FlowableEventListener() {
             @Override
             public void onEvent(FlowableEvent flowableEvent) {
-                FlowableEntityWithVariablesEventImpl taskComplete = (FlowableEntityWithVariablesEventImpl) flowableEvent;
-                TaskEntity taskEntity = (TaskEntity) taskComplete.getEntity();
-                log.info("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskComplete.getExecutionId());
+                if (flowableEvent instanceof FlowableEntityEventImpl) {
 
+                    FlowableEntityEventImpl flowableEvent1 = (FlowableEntityEventImpl) flowableEvent;
+                    TaskEntity taskEntity = (TaskEntity) flowableEvent1.getEntity();
+                    log.info("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskEntity.getExecutionId());
+
+                } else {
+                    FlowableEntityWithVariablesEventImpl taskComplete = (FlowableEntityWithVariablesEventImpl) flowableEvent;
+                    TaskEntity taskEntity = (TaskEntity) taskComplete.getEntity();
+                    log.info("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskComplete.getExecutionId());
+                }
             }
 
             @Override

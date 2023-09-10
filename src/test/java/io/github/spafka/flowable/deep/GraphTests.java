@@ -117,7 +117,7 @@ public class GraphTests {
         String xml = "src/main/resources/bpmn/回归测试.bpmn20.xml";
         BpmnModel bpmnModel = init(xml);
 
-        Tuple3<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>> jumpTypeEnumListSetTuple3 = Graphs.backTrack(bpmnModel, "EndEvent_1621823740971", "");
+        var jumpTypeEnumListSetTuple3 = Graphs.backTrack(bpmnModel, "EndEvent_1621823740971", "");
         System.out.println();
 
     }

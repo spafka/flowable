@@ -1,6 +1,7 @@
 package io.github.spafka.flowable.join;
 
 import io.github.spafka.flowable.core.JoinUtils;
+
 import io.github.spafka.util.Utils;
 import io.vavr.Tuple2;
 import org.junit.jupiter.api.Test;

@@ -48,7 +48,7 @@ public class GithubReturnServiceImpl implements ReturnService {
 
 
     @Override
-    public boolean returnToTarget(String taskId, String targetId) {
+    public boolean returnToTarget(String taskId, String currentId,String targetId) {
         TaskEntity taskEntity = (TaskEntity) taskService.createTaskQuery().taskId(taskId).singleResult();
         //1.把当前的节点设置为空
         if (taskEntity != null) {

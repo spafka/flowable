@@ -19,6 +19,7 @@ import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -131,6 +132,7 @@ public class PallergateTests extends FlowBase {
 
     }
     @Test
+    //@Disabled
     public void okshould_case1() {
         deploy();
         submit();
@@ -254,7 +256,7 @@ public class PallergateTests extends FlowBase {
         complete("whf", "T3");
         complete("whf", "T3-1");
         complete("whf", "T3-2");
-
+        complete("whf", "T7");
         return2Node("T8","T3");
 
         complete("whf", "T3");

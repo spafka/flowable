@@ -48,7 +48,7 @@ public class JoinUtils {
         List<U> u = new ArrayList<>();
         int i = 0, j = 0;
         while (i < left.size() && j < right.size()) {
-            int compare = lkeyFunction.apply(left.get(i)).compareTo(right.get(j));
+            int compare = lkeyFunction.apply(left.get(i)).compareTo(rkeyFunction.apply(right.get(j)));
 
             if (compare == 0) {
                 u.add(function.apply(left.get(i), right.get(j)));
@@ -93,7 +93,7 @@ public class JoinUtils {
         List<U> u = new ArrayList<>();
         int i = 0, j = 0;
         while (i < left.size() && j < right.size()) {
-            int compare = lkeyFunction.apply(left.get(i)).compareTo(right.get(j));
+            int compare = lkeyFunction.apply(left.get(i)).compareTo(rkeyFunction.apply(right.get(j)));
             if (compare == 0) {
                 u.add(function.apply(left.get(i), right.get(j)));
                 i++;
