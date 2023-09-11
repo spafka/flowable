@@ -10,17 +10,16 @@ import org.flowable.idm.engine.impl.util.CommandContextUtil;
 import java.io.Serializable;
 
 /**
- * @author guzt
+ * @author spafka
  */
 @Slf4j
 public class SaveExecutionCmd implements Command<Void>, Serializable {
     private static final long serialVersionUID = 1L;
     protected ExecutionEntity entity;
-    private IdGenerator idGenerator;
 
-    public SaveExecutionCmd(ExecutionEntity entity, IdGenerator idGenerator) {
-        this.entity = entity;
-        this.idGenerator=idGenerator;
+
+    public SaveExecutionCmd(ExecutionEntity entity) {
+        this.entity = entity;;
     }
 
     @Override

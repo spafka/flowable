@@ -14,15 +14,14 @@ import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j()
 public class Graphs {
 
-    public static Tuple4<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>, Map<String, TopologyNode<FlowElement>>> backTrack(BpmnModel bpmnModel, String lastNode, String beforeNode) {
 
+    public static Tuple3<Map<String, TopologyNode<FlowElement>>, String, String> buildGraph(BpmnModel bpmnModel, String lastNode, String beforeNode) {
         /**
          * 从bpmn解析出procss对象
          */
@@ -115,14 +114,33 @@ public class Graphs {
 
                 });
                 subNode.next.removeAll(collect);
-                System.out.println();
             }
         });
 
 
+        indexMap.forEach((k, v) -> buildParallelGatewayForkJoin(v, indexMap, process));
+
+        return Tuple.of(indexMap, lastNode, beforeNode);
+    }
+
+    public static Tuple4<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>, Map<String, TopologyNode<FlowElement>>> backTrack(BpmnModel bpmnModel, String lastNode, String beforeNode) {
+
+        Tuple3<Map<String, TopologyNode<FlowElement>>, String, String> tuple3 = buildGraph(bpmnModel, lastNode, beforeNode);
+
+        Map<String, TopologyNode<FlowElement>> indexMap = tuple3._1;
+        lastNode = tuple3._2;
+        beforeNode = tuple3._3;
+
+        List<FlowElement> flowElements = bpmnModel.getMainProcess().getFlowElements().stream().flatMap(flowElement -> {
+            if (flowElement instanceof SubProcess) {
+                Collection<FlowElement> sbs = ((SubProcess) flowElement).getFlowElements();
+                return Stream.concat(Stream.of(flowElement), sbs.stream());
+            } else {
+                return Stream.of(flowElement);
+            }
+        }).collect(Collectors.toList());
         FlowElement endNode = flowElements.stream().filter(x -> x instanceof EndEvent).findFirst().get();
 
-        indexMap.forEach((k, v) -> buildParallelGatewayForkJoin(v, indexMap, process));
 
         TopologyNode<FlowElement> end = indexMap.get(endNode.getId());
         LinkedList<TopologyNode<FlowElement>> path = new LinkedList<>();
@@ -224,7 +242,7 @@ public class Graphs {
     }
 
     private static boolean isParallelGateway(TopologyNode<FlowElement> y) {
-        return y.node instanceof ParallelGateway || (y.node instanceof InclusiveGateway && ((InclusiveGateway) y.node).getOutgoingFlows().stream().noneMatch(z -> z.getSkipExpression() == null));
+        return y.node instanceof ParallelGateway || (y.node instanceof InclusiveGateway && ((InclusiveGateway) y.node).getOutgoingFlows().stream().noneMatch(z -> z.getSkipExpression() == null && z.getConditionExpression() == null));
     }
 
 
@@ -243,7 +261,7 @@ public class Graphs {
         }
         TopologyNode<FlowElement> currentNode = nodeMap.get(endId);
         TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> pre = currentNode.pre;
-        if (visited.contains(currentNode.node)) {
+        if (visited.contains(currentNode.node.getId())) {
             return;
         }
         visited.add(currentNode.node.getId());
@@ -271,14 +289,9 @@ public class Graphs {
          *       |-----user-------|
          */
 
-//        if (before.gateways.isEmpty()) {
-//
-////            if (paths.stream().anyMatch(x -> x.stream().anyMatch(y -> y.node instanceof SubProcess))) {
-////                assert later.node.getParentContainer() != before.node.getParentContainer();
-////                return JumpTypeEnum.subToParentProcess;
-////            }
-//            return JumpTypeEnum.serial;
-//        }
+        if (before.gateways.isEmpty() && later.gateways.isEmpty()) {
+            return JumpTypeEnum.serial;
+        }
 
         /**
          *  gate--------B-----user-----A---gate
@@ -291,12 +304,8 @@ public class Graphs {
          *     |--------user----------------------------
          *
          */
-        if (later.gateways.containsAll(before.gateways)) {
-//            if (paths.stream().anyMatch(x -> x.stream().anyMatch(y -> y.node instanceof SubProcess))) {
-//                assert later.node.getParentContainer() != before.node.getParentContainer();
-//                return JumpTypeEnum.subToParentProcess;
-//            }
-            //assert later.node.getParentContainer() == before.node.getParentContainer();
+        if (!later.gateways.isEmpty() && later.gateways.containsAll(before.gateways) && before.gateways.containsAll(later.gateways)) {
+
             return JumpTypeEnum.serial;
         }
 
@@ -307,11 +316,11 @@ public class Graphs {
          *
          *
          */
-        if (!later.gateways.containsAll(before.gateways)) {
+        if (!later.gateways.isEmpty() && !later.gateways.containsAll(before.gateways)) {
             return JumpTypeEnum.paral;
         }
 
-        return JumpTypeEnum.un_known;
+        return JumpTypeEnum.paral;
     }
 
     /**

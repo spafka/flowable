@@ -647,7 +647,7 @@ public class FlowableBpmUserTaskServiceImpl implements BpmUserTaskService {
         executionEntity.setStartTime(new Date());
         ((ExecutionEntityImpl) executionEntity).setCountEnabled(true);
 
-        managementService.executeCommand(new SaveExecutionCmd(executionEntity, idGenerator));
+        managementService.executeCommand(new SaveExecutionCmd(executionEntity));
         //executionEntityManager.insert(executionEntity);
     }
 

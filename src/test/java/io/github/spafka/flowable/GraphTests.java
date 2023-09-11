@@ -145,4 +145,24 @@ public class GraphTests {
         System.out.println();
 
     }
+
+    @Test
+    public void testSubProcess43() {
+        String xml = "src/main/resources/returntest/嵌套相容子流程.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        var r = Graphs.backTrack(bpmnModel, "T8", "T1");
+        System.out.println();
+
+    }
+
+    @Test
+    public void testSubProcess44() {
+        String xml = "aa.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        var r = Graphs.backTrack(bpmnModel, "UserTask_1693389822468", "UserTask_1693271307830");
+        System.out.println();
+
+    }
 }

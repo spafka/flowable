@@ -4,7 +4,6 @@ import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.core.JoinUtils;
 import io.github.spafka.flowable.service.BpmnService;
 import io.github.spafka.flowable.service.FlowNodeDto;
-
 import org.apache.commons.io.IOUtils;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.FlowElement;
@@ -23,8 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -135,15 +135,13 @@ public class FlowBase {
 
         task = all.stream().filter(x -> x.getName().equals(taskName) || Objects.isNull(taskName) || x.getTaskDefinitionKey().equals(taskName)).findFirst().get();
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
-        List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
+        List<FlowNodeDto> backNodes = flowService.getBackNodes(taskName);
 
         List<FlowNodeDto> flowNodeDtos = JoinUtils.sortJoin(backNodes,
                 list,
                 FlowNodeDto::getId,
                 TaskInfo::getTaskDefinitionKey,
                 (a, b) -> a);
-        flowNodeDtos.forEach(x -> System.out.printf("can back %s %s %s", x.getId(), x.getName(), "\n"));
-
         return flowNodeDtos;
     }
 
