@@ -121,10 +121,13 @@ public class FlowBase {
         List<Task> list = taskService.createTaskQuery()
                 .taskAssignee(user)
                 .list();
-        list.stream().filter(x -> x.getName().equals(taskName)).forEach(x -> {
-            taskService.complete(x.getId(), taskService.getVariables(x.getId()));
+        list.stream().filter(x -> x.getName().equals(taskName))
+                .findFirst().ifPresentOrElse(x -> {
+                    taskService.complete(x.getId(), taskService.getVariables(x.getId()));
 
-        });
+                }, () -> {
+                    throw new RuntimeException("待办任务不存在 " + taskName);
+                });
 
 
     }

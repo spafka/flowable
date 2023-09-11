@@ -15,7 +15,7 @@ public class TopologyNode<T extends FlowElement> implements Comparable<TopologyN
     public SkipList<TopologyNode<T>> gateways = new SkipList<>();
 
    public Set<TopologyNode<T>> forks = new HashSet<>();
-   public TopologyNode join;
+   public TopologyNode<T> join;
 
     public TopologyNode(T node) {
         this.node = node;

@@ -4,21 +4,23 @@ package io.github.spafka.flowable;
 public enum JumpTypeEnum {
 
     /**
+     *
+     */
+    simple_serial,
+
+    /**
      * 串行
      */
     serial,
     /**
      * 并行
      */
-    paral,
+    paral_to_father,
     /**
      * 跳到父流程
      */
-    subToParentProcess,
+    paral_to_child,
 
-    /**
-     * 未知类型
-     */
-    un_known;
+
 
 }

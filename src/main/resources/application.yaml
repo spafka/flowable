@@ -3,6 +3,7 @@ logging:
     org.springframework: warn
     org.flowable.engine.impl.persistence.entity.*: info
     org.flowable.task.service.impl.persistence.entity.*: info
+    io.github.spafka.flowable.service.Graphs: trace
 flowable:
   app:
     enabled: false

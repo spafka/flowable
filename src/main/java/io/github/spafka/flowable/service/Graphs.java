@@ -153,7 +153,7 @@ public class Graphs {
 
         Set<FlowElement> toAddExecution = new HashSet<>();
 
-        if (jumpTypeEnum == JumpTypeEnum.paral) {
+        if (jumpTypeEnum == JumpTypeEnum.paral_to_child) {
 
             List<TopologyNode<FlowElement>> joinGateways = paths.stream().flatMap(x -> x.stream().filter(y -> isParallelGateway(y))).distinct().collect(Collectors.toList());
             List<TopologyNode<FlowElement>> innerGateway = new LinkedList<>();
@@ -214,7 +214,6 @@ public class Graphs {
 
                         List<SequenceFlow> outgoingFlows = parallelGateway.getOutgoingFlows();
                         Boolean reduce = outgoingFlows.stream().map(x -> FlowableUtils.isReachable(process, x.getId(), pg.node.getId())).reduce(true, (a, b) -> a && b);
-
                         if (reduce) {
                             log.info("判断 {} 是 {}'s join", pg.node.getId(), parallable.node.getId());
 
@@ -247,7 +246,7 @@ public class Graphs {
 
 
     public static void findPathFromBehind(Map<String, TopologyNode<FlowElement>> nodeMap, String startId, String endId, List<LinkedList<TopologyNode<FlowElement>>> res, LinkedList<TopologyNode<FlowElement>> path, Set<String> visited) {
-        log.trace("{} {} {} {}", startId, endId, path, visited);
+        log.info("{} {} {} {}", startId, endId, path, visited);
 
         if (path.isEmpty()) {
             path.addFirst(nodeMap.get(endId));
@@ -271,6 +270,7 @@ public class Graphs {
             findPathFromBehind(nodeMap, startId, preNode.node.getId(), res, path, visited);
             path.removeLast();
         }
+        visited.remove(currentNode.node.getId());
 
 
     }
@@ -285,13 +285,14 @@ public class Graphs {
         /**
          *  B-----user-------A
          *
-         *  B----gate-------A-----gate
-         *       |-----user-------|
          */
 
-        if (before.gateways.isEmpty() && later.gateways.isEmpty()) {
-            return JumpTypeEnum.serial;
+        if ((before.gateways.isEmpty() && later.gateways.isEmpty())) {
+            return JumpTypeEnum.simple_serial;
+        } else if ((before.gateways.containsAll(later.gateways) && later.gateways.containsAll(before.gateways))) {
+            return JumpTypeEnum.simple_serial;
         }
+
 
         /**
          *  gate--------B-----user-----A---gate
@@ -304,9 +305,9 @@ public class Graphs {
          *     |--------user----------------------------
          *
          */
-        if (!later.gateways.isEmpty() && later.gateways.containsAll(before.gateways) && before.gateways.containsAll(later.gateways)) {
+        else if (later.gateways.containsAll(before.gateways)) {
 
-            return JumpTypeEnum.serial;
+            return JumpTypeEnum.paral_to_father;
         }
 
         /**    -----user-----
@@ -316,11 +317,11 @@ public class Graphs {
          *
          *
          */
-        if (!later.gateways.isEmpty() && !later.gateways.containsAll(before.gateways)) {
-            return JumpTypeEnum.paral;
+        else {
+            return JumpTypeEnum.paral_to_child;
         }
 
-        return JumpTypeEnum.paral;
+
     }
 
     /**
@@ -333,6 +334,7 @@ public class Graphs {
     public static void currentToEndAllPath(TopologyNode<FlowElement> head, String tail, LinkedList<FlowElement> path, LinkedList<LinkedList<FlowElement>> res) {
 
         if (tail == null) {
+            // 直到非子流程的终止节点
             if (head.node instanceof EndEvent && head.node.getParentContainer() instanceof Process) {
                 res.add(new LinkedList<>(path));
             }

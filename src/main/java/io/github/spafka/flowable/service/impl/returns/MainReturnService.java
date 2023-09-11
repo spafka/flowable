@@ -1,8 +1,12 @@
-package io.github.spafka.flowable.service;
+package io.github.spafka.flowable.service.impl.returns;
 
 import io.github.spafka.flowable.JumpTypeEnum;
 import io.github.spafka.flowable.core.TopologyNode;
+import io.github.spafka.flowable.service.FlowNodeDto;
+import io.github.spafka.flowable.service.Graphs;
+import io.github.spafka.flowable.service.ReturnService;
 import io.github.spafka.flowable.service.impl.returns.SaveExecutionCmd;
+import io.github.spafka.tuple.Tuple2;
 import io.github.spafka.util.JoinUtils;
 import io.vavr.Tuple3;
 import lombok.extern.slf4j.Slf4j;
@@ -127,7 +131,14 @@ public class MainReturnService implements ReturnService {
 
         Map<String, TopologyNode<FlowElement>> indexMap = tuple._4;
 
-        if (tuple._1 == JumpTypeEnum.serial) {
+        var topologyNode = indexMap.get(targetId);
+        if (tuple._1 == JumpTypeEnum.simple_serial) {
+            log.info("简单串行驳回 {} 2 {}", currentId, targetId);
+            runtimeService.createChangeActivityStateBuilder()
+                    .processInstanceId(processInstanceId)
+                    .moveActivityIdTo(currentId, targetId)
+                    .changeState();
+        } else if (tuple._1 == JumpTypeEnum.serial) {
             log.info("串行驳回 {} 2 {}", currentId, targetId);
             LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
             TopologyNode<FlowElement> targetNode = indexMap.get(targetId);
@@ -144,7 +155,7 @@ public class MainReturnService implements ReturnService {
                     .processInstanceId(processInstanceId)
                     .moveExecutionsToSingleActivityId(executionIds, targetId)
                     .changeState();
-            if (pathToEnd.stream().anyMatch(flowElements -> flowElements.stream().anyMatch(flowElement -> flowElement instanceof SubProcess))) {
+            if (paths.stream().anyMatch(flowElement -> flowElement.node instanceof SubProcess)) {
                 List<Task> currentTasks = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
                 Map<String, List<Task>> listMap = currentTasks.stream().collect(Collectors.groupingBy(TaskInfo::getTaskDefinitionKey));
 
@@ -160,12 +171,8 @@ public class MainReturnService implements ReturnService {
             }
             return true;
 
-        }
-
-
-        if (tuple._1 == JumpTypeEnum.paral) {
-            log.info("并行行驳回 {} 2 {}", currentId, targetId);
-            TopologyNode<FlowElement> topologyNode = paths.get(paths.size() - 1);
+        } else if (tuple._1 == JumpTypeEnum.paral_to_child) {
+            log.info("并行驳回到join到fork分支 {} 2 {}", currentId, targetId);
 
             LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
 
@@ -173,7 +180,6 @@ public class MainReturnService implements ReturnService {
 
 
             List<FlowElement> toEnd = pathToEnd.stream().flatMap(Collection::stream)
-
                     .distinct().collect(Collectors.toList());
             List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
             log.info("当前executions {} {}", executionIds, executions);
@@ -184,7 +190,6 @@ public class MainReturnService implements ReturnService {
 
             Set<FlowElement> sequenceFlows = tuple._3;
             sequenceFlows.forEach(x -> {
-
                 if (x instanceof Gateway) {
                     if (executionIds.contains(x.getId())) {
                         return;
@@ -194,6 +199,45 @@ public class MainReturnService implements ReturnService {
                     }
                 }
             });
+            return true;
+        } else if (tuple._1 == JumpTypeEnum.paral_to_father) {
+            log.info("并行驳回至父网关 {} 2 {}", currentId, targetId);
+
+
+            TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> parentGates = indexMap.get(targetId).gateways;
+            TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> currentGates = indexMap.get(currentId).gateways;
+            List<TopologyNode<FlowElement>> endGates = JoinUtils.leftOnly(new ArrayList<>(currentGates), new ArrayList<>(parentGates), (a, b) -> a.node.getId().equals(b.node.getId())).stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
+
+
+            LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
+
+            endGates.forEach(x -> Graphs.currentToEndAllPath(topologyNode, x.node.getId(), new LinkedList<>(), pathToEnd));
+
+
+            List<FlowElement> toEnd = pathToEnd.stream().flatMap(Collection::stream)
+                    .distinct().collect(Collectors.toList());
+            List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
+            log.info("当前executions {} {}", executionIds, executions);
+            runtimeService.createChangeActivityStateBuilder()
+                    .processInstanceId(processInstanceId)
+                    .moveExecutionsToSingleActivityId(executionIds, targetId)
+                    .changeState();
+            // 子流程bug
+            if (indexMap.get(currentId).node.getParentContainer() != indexMap.get(targetId).node.getParentContainer()) {
+                List<Task> currentTasks = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
+                Map<String, List<Task>> listMap = currentTasks.stream().collect(Collectors.groupingBy(TaskInfo::getTaskDefinitionKey));
+
+                listMap.forEach((k, v) -> {
+                    if (v.size() > 1) {
+                        List<Task> toRemoveTask = v.stream().skip(1).collect(Collectors.toList());
+                        toRemoveTask.forEach(x -> {
+                            jdbcTemplate.update("delete from act_ru_task where id_ = ? ", x.getId());
+                            jdbcTemplate.update("delete from act_ru_execution where id_ = ? ", x.getExecutionId());
+                        });
+                    }
+                });
+            }
+
             return true;
         }
         return false;
