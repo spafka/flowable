@@ -1,5 +1,6 @@
 package io.github.spafka.flowable.core;
 
+import org.flowable.bpmn.model.BaseElement;
 import org.flowable.bpmn.model.FlowElement;
 
 import java.util.HashSet;
@@ -7,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
-public class TopologyNode<T extends FlowElement> implements Comparable<TopologyNode<T>> {
+public class TopologyNode<T extends BaseElement> implements Comparable<TopologyNode<T>> {
     public T node;
     public SkipList<TopologyNode<T>> next = new SkipList<>();
     public SkipList<TopologyNode<T>> pre = new SkipList<>();

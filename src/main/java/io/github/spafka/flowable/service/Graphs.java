@@ -8,10 +8,13 @@ import io.github.spafka.flowable.core.TopologyNode;
 import io.vavr.Tuple;
 import io.vavr.Tuple3;
 import io.vavr.Tuple4;
+import liquibase.pro.packaged.P;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,7 +24,7 @@ import java.util.stream.Stream;
 public class Graphs {
 
 
-    public static Tuple3<Map<String, TopologyNode<FlowElement>>, String, String> buildGraph(BpmnModel bpmnModel, String lastNode, String beforeNode) {
+    public static Tuple3<Map<String, TopologyNode<BaseElement>>, String, String> buildGraph(BpmnModel bpmnModel, String lastNode, String beforeNode) {
         /**
          * 从bpmn解析出procss对象
          */
@@ -38,6 +41,16 @@ public class Graphs {
                 return Stream.of(flowElement);
             }
         }).collect(Collectors.toList());
+        Collection<Signal> signals = bpmnModel.getSignals();
+
+        Map<String, Signal> sigMap = Maps.newLinkedHashMap();
+
+        if (!CollectionUtils.isEmpty(signals)) {
+            signals.stream().forEach(x -> {
+                sigMap.put(x.getId(), x);
+            });
+        }
+
 
         /**
          * id->FlowElement
@@ -45,9 +58,11 @@ public class Graphs {
         Map<String, FlowElement> idMap = flowElements.stream().collect(Collectors.toMap(BaseElement::getId, x -> x));
 
         /**
-         * 起始节点
+         * 起始节点,如果是事件子流程，起始节点只能是事件子流程的起始节点
          */
         FlowElement start = flowElements.stream().filter(x -> x instanceof StartEvent && x.getParentContainer() instanceof Process).findFirst().get();
+
+
 
         if (StringUtils.isBlank(beforeNode)) {
             beforeNode = start.getId();
@@ -63,15 +78,19 @@ public class Graphs {
         assert idMap.containsKey(lastNode);
         assert idMap.containsKey(beforeNode);
 
-        Map<String, TopologyNode<FlowElement>> indexMap = Maps.newLinkedHashMap();
+        Map<String, TopologyNode<BaseElement>> indexMap = Maps.newLinkedHashMap();
+
+        sigMap.forEach((k, v) -> {
+            indexMap.put(k, new TopologyNode<>(v));
+        });
 
         /**
          * 构建拓扑图
          */
         flowElements.forEach(x -> {
             if (x instanceof SequenceFlow) {
-                TopologyNode<FlowElement> pre = indexMap.computeIfAbsent(((SequenceFlow) x).getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
-                TopologyNode<FlowElement> next = indexMap.computeIfAbsent(((SequenceFlow) x).getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
+                TopologyNode<BaseElement> pre = indexMap.computeIfAbsent(((SequenceFlow) x).getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
+                TopologyNode<BaseElement> next = indexMap.computeIfAbsent(((SequenceFlow) x).getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
                 pre.addNext(next);
                 next.addSource(pre);
             }
@@ -88,8 +107,26 @@ public class Graphs {
                 // 子流程起始节点
                 if (parentContainer instanceof SubProcess) {
                     String id = ((SubProcess) parentContainer).getId();
-                    indexMap.get(id).addNext(v);
-                    v.addSource(indexMap.get(id));
+                    TopologyNode<BaseElement> node1 = indexMap.get(id);
+
+                    if (node1 != null) {
+                        node1.addNext(v);
+                        v.addSource(node1);
+                    } else {
+
+//                        List<EventDefinition> eventDefinitions = node.getEventDefinitions();
+//
+//                        eventDefinitions.forEach(x -> {
+//                            if (x instanceof SignalEventDefinition) {
+//                                String signalRef = ((SignalEventDefinition) x).getSignalRef();
+//                                var node2 = indexMap.get(signalRef);
+//
+//                                node2.addNext(v);
+//                                v.addSource(node2);
+//                            }
+//                        });
+
+                    }
                 }
             }
         });
@@ -98,12 +135,12 @@ public class Graphs {
             if (v.node instanceof SubProcess) {
                 SubProcess node = (SubProcess) v.node;
 
-                TopologyNode<FlowElement> subNode = indexMap.get(node.getId());
+                TopologyNode<BaseElement> subNode = indexMap.get(node.getId());
 
                 // todo 子流程的起始节点只能是startEvent?
                 List<FlowElement> endEvents = node.getFlowElements().stream().filter(x -> (x instanceof EndEvent)).collect(Collectors.toList());
 
-                List<TopologyNode<FlowElement>> collect = subNode.next.stream().filter(x -> !(x.node instanceof StartEvent)).collect(Collectors.toList());
+                List<TopologyNode<BaseElement>> collect = subNode.next.stream().filter(x -> !(x.node instanceof StartEvent)).collect(Collectors.toList());
                 endEvents.forEach(x -> {
                     collect.forEach(y -> {
                         indexMap.get(x.getId()).addNext(y);
@@ -119,15 +156,22 @@ public class Graphs {
 
 
         indexMap.forEach((k, v) -> buildParallelGatewayForkJoin(v, indexMap, process));
+        List<LinkedList<TopologyNode<BaseElement>>> res=new ArrayList<>();
+
+        findPathFromBehind(indexMap,beforeNode,lastNode,res,new LinkedList<>(),Sets.newHashSet());
+        if (res.isEmpty()){
+            TopologyNode<BaseElement> eventSubProcess = indexMap.get(lastNode);
+            beforeNode= ((FlowElement) eventSubProcess.node).getParentContainer().getFlowElements().stream().filter(x->x instanceof StartEvent).findFirst().get().getId();
+        }
 
         return Tuple.of(indexMap, lastNode, beforeNode);
     }
 
-    public static Tuple4<JumpTypeEnum, List<LinkedList<TopologyNode<FlowElement>>>, Set<FlowElement>, Map<String, TopologyNode<FlowElement>>> backTrack(BpmnModel bpmnModel, String lastNode, String beforeNode) {
+    public static Tuple4<JumpTypeEnum, List<LinkedList<TopologyNode<BaseElement>>>, Set<FlowElement>, Map<String, TopologyNode<BaseElement>>> backTrack(BpmnModel bpmnModel, String lastNode, String beforeNode) {
 
-        Tuple3<Map<String, TopologyNode<FlowElement>>, String, String> tuple3 = buildGraph(bpmnModel, lastNode, beforeNode);
+        Tuple3<Map<String, TopologyNode<BaseElement>>, String, String> tuple3 = buildGraph(bpmnModel, lastNode, beforeNode);
 
-        Map<String, TopologyNode<FlowElement>> indexMap = tuple3._1;
+        Map<String, TopologyNode<BaseElement>> indexMap = tuple3._1;
         lastNode = tuple3._2;
         beforeNode = tuple3._3;
 
@@ -142,12 +186,12 @@ public class Graphs {
         FlowElement endNode = flowElements.stream().filter(x -> x instanceof EndEvent).findFirst().get();
 
 
-        TopologyNode<FlowElement> end = indexMap.get(endNode.getId());
-        LinkedList<TopologyNode<FlowElement>> path = new LinkedList<>();
+        TopologyNode<BaseElement> end = indexMap.get(endNode.getId());
+        LinkedList<TopologyNode<BaseElement>> path = new LinkedList<>();
         path.addFirst(end);
         path.removeLast();
 
-        List<LinkedList<TopologyNode<FlowElement>>> paths = new ArrayList<>();
+        List<LinkedList<TopologyNode<BaseElement>>> paths = new ArrayList<>();
         findPathFromBehind(indexMap, beforeNode, lastNode, paths, new LinkedList<>(), Sets.newHashSet());
         JumpTypeEnum jumpTypeEnum = judgeJumpType(paths, indexMap.get(beforeNode), indexMap.get(lastNode));
 
@@ -155,13 +199,13 @@ public class Graphs {
 
         if (jumpTypeEnum == JumpTypeEnum.paral_to_child) {
 
-            List<TopologyNode<FlowElement>> joinGateways = paths.stream().flatMap(x -> x.stream().filter(y -> isParallelGateway(y))).distinct().collect(Collectors.toList());
-            List<TopologyNode<FlowElement>> innerGateway = new LinkedList<>();
+            List<TopologyNode<BaseElement>> joinGateways = paths.stream().flatMap(x -> x.stream().filter(y -> isParallelGateway(y))).distinct().collect(Collectors.toList());
+            List<TopologyNode<BaseElement>> innerGateway = new LinkedList<>();
 
             joinGateways.stream()
                     .filter(x -> {
                         if (x.join != null) {
-                            TopologyNode<FlowElement> join = x.join;
+                            TopologyNode<BaseElement> join = x.join;
                             if (joinGateways.contains(join)) {
                                 innerGateway.add(x);
                                 innerGateway.add(x.join);
@@ -179,14 +223,14 @@ public class Graphs {
                         toAddExecution.add(seq);
                     }
                 }
-                toAddExecution.add(gates.node);
+                toAddExecution.add((FlowElement) gates.node);
             });
         }
         return Tuple.of(jumpTypeEnum, paths, toAddExecution, indexMap);
     }
 
 
-    public static void buildParallelGatewayForkJoin(TopologyNode<FlowElement> parallable, Map<String, TopologyNode<FlowElement>> indexMap, Process process) {
+    public static void buildParallelGatewayForkJoin(TopologyNode<BaseElement> parallable, Map<String, TopologyNode<BaseElement>> indexMap, Process process) {
 
 
         if (isParallelGateway(parallable)) {
@@ -198,24 +242,24 @@ public class Graphs {
 
                 if (parallelGateway.getOutgoingFlows().size() > 1) {
 
-                    log.info("判断 {} 网关", parallelGateway.getId());
+                    log.debug("判断 {} 网关", parallelGateway.getId());
 
-                    List<LinkedList<TopologyNode<FlowElement>>> paths = new ArrayList<>();
+                    List<LinkedList<TopologyNode<BaseElement>>> paths = new ArrayList<>();
                     findPathFromBehind(indexMap, parallable.node.getId(), endEvent.getId(), paths, new LinkedList<>(), Sets.newHashSet());
-                    List<TopologyNode<FlowElement>> pgs = paths.stream().flatMap(x -> x.stream().filter(y -> isParallelGateway(y))).distinct().collect(Collectors.toList());
+                    List<TopologyNode<BaseElement>> pgs = paths.stream().flatMap(x -> x.stream().filter(y -> isParallelGateway(y))).distinct().collect(Collectors.toList());
 
-                    for (TopologyNode<FlowElement> pg : pgs) {
+                    for (TopologyNode<BaseElement> pg : pgs) {
                         if (pg == parallable) {
                             continue;
                         }
-                        log.info("判断 {} 是否是 {}'s join", pg.node.getId(), parallable.node.getId());
+                        log.debug("判断 {} 是否是 {}'s join", pg.node.getId(), parallable.node.getId());
                         paths = new ArrayList<>();
                         findPathFromBehind(indexMap, parallable.node.getId(), pg.node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
 
                         List<SequenceFlow> outgoingFlows = parallelGateway.getOutgoingFlows();
                         Boolean reduce = outgoingFlows.stream().map(x -> FlowableUtils.isReachable(process, x.getId(), pg.node.getId())).reduce(true, (a, b) -> a && b);
                         if (reduce) {
-                            log.info("判断 {} 是 {}'s join", pg.node.getId(), parallable.node.getId());
+                            log.debug("判断 {} 是 {}'s join", pg.node.getId(), parallable.node.getId());
 
                             paths.forEach(x -> x.stream()
                                     .filter(y -> y != parallable)
@@ -240,13 +284,13 @@ public class Graphs {
 
     }
 
-    private static boolean isParallelGateway(TopologyNode<FlowElement> y) {
+    private static boolean isParallelGateway(TopologyNode<BaseElement> y) {
         return y.node instanceof ParallelGateway || (y.node instanceof InclusiveGateway && ((InclusiveGateway) y.node).getOutgoingFlows().stream().noneMatch(z -> z.getSkipExpression() == null && z.getConditionExpression() == null));
     }
 
 
-    public static void findPathFromBehind(Map<String, TopologyNode<FlowElement>> nodeMap, String startId, String endId, List<LinkedList<TopologyNode<FlowElement>>> res, LinkedList<TopologyNode<FlowElement>> path, Set<String> visited) {
-        log.info("{} {} {} {}", startId, endId, path, visited);
+    public static void findPathFromBehind(Map<String, TopologyNode<BaseElement>> nodeMap, String startId, String endId, List<LinkedList<TopologyNode<BaseElement>>> res, LinkedList<TopologyNode<BaseElement>> path, Set<String> visited) {
+        log.debug("{} {} {} {}", startId, endId, path, visited);
 
         if (path.isEmpty()) {
             path.addFirst(nodeMap.get(endId));
@@ -258,14 +302,14 @@ public class Graphs {
         if (visited.contains(startId)) {
             return;
         }
-        TopologyNode<FlowElement> currentNode = nodeMap.get(endId);
-        TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> pre = currentNode.pre;
+        TopologyNode<BaseElement> currentNode = nodeMap.get(endId);
+        TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> pre = currentNode.pre;
         if (visited.contains(currentNode.node.getId())) {
             return;
         }
         visited.add(currentNode.node.getId());
 
-        for (TopologyNode<FlowElement> preNode : pre) {
+        for (TopologyNode<BaseElement> preNode : pre) {
             path.addLast(preNode);
             findPathFromBehind(nodeMap, startId, preNode.node.getId(), res, path, visited);
             path.removeLast();
@@ -275,9 +319,9 @@ public class Graphs {
 
     }
 
-    public static JumpTypeEnum judgeJumpType(List<LinkedList<TopologyNode<FlowElement>>> paths, TopologyNode<FlowElement> before, TopologyNode<FlowElement> later) {
+    public static JumpTypeEnum judgeJumpType(List<LinkedList<TopologyNode<BaseElement>>> paths, TopologyNode<BaseElement> before, TopologyNode<BaseElement> later) {
 
-        log.info("{} gate:[{}] {}:gate[{}]", before.node.getId(), before.gateways, later.node.getId(), later.gateways);
+        log.debug("{} gate:[{}] {}:gate[{}]", before.node.getId(), before.gateways, later.node.getId(), later.gateways);
         if (paths.isEmpty()) {
             throw new RuntimeException("路径不可达");
         }
@@ -331,11 +375,11 @@ public class Graphs {
      * @param path
      * @param res
      */
-    public static void currentToEndAllPath(TopologyNode<FlowElement> head, String tail, LinkedList<FlowElement> path, LinkedList<LinkedList<FlowElement>> res) {
+    public static void currentToEndAllPath(TopologyNode<BaseElement> head, String tail, LinkedList<FlowElement> path, LinkedList<LinkedList<FlowElement>> res) {
 
         if (tail == null) {
             // 直到非子流程的终止节点
-            if (head.node instanceof EndEvent && head.node.getParentContainer() instanceof Process) {
+            if (head.node instanceof EndEvent && ((FlowElement) (head.node)).getParentContainer() instanceof Process) {
                 res.add(new LinkedList<>(path));
             }
         } else {
@@ -343,9 +387,9 @@ public class Graphs {
                 res.add(new LinkedList<>(path));
             }
         }
-        TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> next = head.next;
-        for (TopologyNode<FlowElement> f : next) {
-            path.addLast(f.node);
+        TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> next = head.next;
+        for (TopologyNode<BaseElement> f : next) {
+            path.addLast((FlowElement) f.node);
             currentToEndAllPath(f, tail, path, res);
             path.removeLast();
         }

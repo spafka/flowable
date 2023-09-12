@@ -158,7 +158,7 @@ public class GraphTests {
 
     @Test
     public void testSubProcess44() {
-        String xml = "aa.xml";
+        String xml = "supos.bpmn20.xml";
         BpmnModel bpmnModel = init(xml);
 
         var r = Graphs.backTrack(bpmnModel, "UserTask_1693389822468", "UserTask_1693271307830");
@@ -172,6 +172,25 @@ public class GraphTests {
         BpmnModel bpmnModel = init(xml);
 
         var r = Graphs.backTrack(bpmnModel, null, null);
+        System.out.println();
+
+    }
+    @Test
+    public void testInclusiveGate() {
+        String xml = "嵌套相容子流程.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        var r = Graphs.backTrack(bpmnModel, null, null);
+        System.out.println();
+
+    }
+
+    @Test
+    public void testSupos1() {
+        String xml = "supos.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        var r = Graphs.backTrack(bpmnModel, "UserTask_1621823731368",null);
         System.out.println();
 
     }

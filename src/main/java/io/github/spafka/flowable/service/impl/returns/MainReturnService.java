@@ -58,21 +58,21 @@ public class MainReturnService implements ReturnService {
         Task task = taskService.createTaskQuery().taskId(instanceId).singleResult();
         var tuple = Graphs.backTrack(bpmnModel, task.getTaskDefinitionKey(), null);
 
-        LinkedList<TopologyNode<FlowElement>> one = tuple._2.get(0);
+        LinkedList<TopologyNode<BaseElement>> one = tuple._2.get(0);
 
 
         one.removeFirst();
-        TopologyNode<FlowElement> last = one.getFirst();
+        TopologyNode<BaseElement> last = one.getFirst();
 
-        Deque<TopologyNode<FlowElement>> deque = new LinkedList<>();
-        Set<TopologyNode<FlowElement>> processed = new LinkedHashSet<>();
+        Deque<TopologyNode<BaseElement>> deque = new LinkedList<>();
+        Set<TopologyNode<BaseElement>> processed = new LinkedHashSet<>();
 
 
         deque.add(last);
         processed.add(last);
         while (!deque.isEmpty()) {
-            TopologyNode<FlowElement> poll = deque.pollFirst();
-            TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> pre = poll.pre;
+            TopologyNode<BaseElement> poll = deque.pollFirst();
+            TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> pre = poll.pre;
             pre.forEach(x -> {
                 boolean contains = processed.contains(x);
                 if (!contains) {
@@ -85,7 +85,7 @@ public class MainReturnService implements ReturnService {
         List<FlowNodeDto> backNodes = processed
                 .stream()
                 .filter(x -> x.node instanceof UserTask)
-                .map(x -> new FlowNodeDto(x.node.getId(), x.node.getName()))
+                .map(x -> new FlowNodeDto(x.node.getId(),((UserTask)( x.node)).getName()))
                 .collect(Collectors.toList());
 
 
@@ -127,9 +127,8 @@ public class MainReturnService implements ReturnService {
 
 
         var tuple = Graphs.backTrack(model, currentId, targetId);
-        List<TopologyNode<FlowElement>> paths = tuple._2().stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
 
-        Map<String, TopologyNode<FlowElement>> indexMap = tuple._4;
+        Map<String, TopologyNode<BaseElement>> indexMap = tuple._4;
 
         var topologyNode = indexMap.get(targetId);
         if (tuple._1 == JumpTypeEnum.simple_serial) {
@@ -138,39 +137,6 @@ public class MainReturnService implements ReturnService {
                     .processInstanceId(processInstanceId)
                     .moveActivityIdTo(currentId, targetId)
                     .changeState();
-        } else if (tuple._1 == JumpTypeEnum.serial) {
-            log.info("串行驳回 {} 2 {}", currentId, targetId);
-            LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
-            TopologyNode<FlowElement> targetNode = indexMap.get(targetId);
-
-            Graphs.currentToEndAllPath(targetNode, null, new LinkedList<>(), pathToEnd);
-
-            LinkedList<LinkedList<FlowElement>> pathToEnd2 = new LinkedList<>();
-            Graphs.currentToEndAllPath(targetNode, null, new LinkedList<>(), pathToEnd2);
-            List<FlowElement> toEnd = pathToEnd2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
-
-            List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
-            log.info("当前executions {} {}", executionIds, executions);
-            runtimeService.createChangeActivityStateBuilder()
-                    .processInstanceId(processInstanceId)
-                    .moveExecutionsToSingleActivityId(executionIds, targetId)
-                    .changeState();
-            if (paths.stream().anyMatch(flowElement -> flowElement.node instanceof SubProcess)) {
-                List<Task> currentTasks = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
-                Map<String, List<Task>> listMap = currentTasks.stream().collect(Collectors.groupingBy(TaskInfo::getTaskDefinitionKey));
-
-                listMap.forEach((k, v) -> {
-                    if (v.size() > 1) {
-                        List<Task> toRemoveTask = v.stream().skip(1).collect(Collectors.toList());
-                        toRemoveTask.forEach(x -> {
-                            jdbcTemplate.update("delete from act_ru_task where id_ = ? ", x.getId());
-                            jdbcTemplate.update("delete from act_ru_execution where id_ = ? ", x.getExecutionId());
-                        });
-                    }
-                });
-            }
-            return true;
-
         } else if (tuple._1 == JumpTypeEnum.paral_to_child) {
             log.info("并行驳回到join到fork分支 {} 2 {}", currentId, targetId);
 
@@ -204,9 +170,9 @@ public class MainReturnService implements ReturnService {
             log.info("并行驳回至父网关 {} 2 {}", currentId, targetId);
 
 
-            TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> parentGates = indexMap.get(targetId).gateways;
-            TopologyNode<FlowElement>.SkipList<TopologyNode<FlowElement>> currentGates = indexMap.get(currentId).gateways;
-            List<TopologyNode<FlowElement>> endGates = JoinUtils.leftOnly(new ArrayList<>(currentGates), new ArrayList<>(parentGates), (a, b) -> a.node.getId().equals(b.node.getId())).stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
+            TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> parentGates = indexMap.get(targetId).gateways;
+            TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> currentGates = indexMap.get(currentId).gateways;
+            List<TopologyNode<BaseElement>> endGates = JoinUtils.leftOnly(new ArrayList<>(currentGates), new ArrayList<>(parentGates), (a, b) -> a.node.getId().equals(b.node.getId())).stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
 
 
             LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
@@ -223,7 +189,7 @@ public class MainReturnService implements ReturnService {
                     .moveExecutionsToSingleActivityId(executionIds, targetId)
                     .changeState();
             // 子流程bug
-            if (indexMap.get(currentId).node.getParentContainer() != indexMap.get(targetId).node.getParentContainer()) {
+            if (((FlowElement) indexMap.get(currentId).node).getParentContainer() != ((FlowElement) indexMap.get(targetId).node).getParentContainer()) {
                 List<Task> currentTasks = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
                 Map<String, List<Task>> listMap = currentTasks.stream().collect(Collectors.groupingBy(TaskInfo::getTaskDefinitionKey));
 

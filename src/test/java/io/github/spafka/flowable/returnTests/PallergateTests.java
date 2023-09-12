@@ -9,6 +9,7 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,7 +48,7 @@ public class PallergateTests extends FlowBase {
 
     static int i = 0;
 
-    @Test
+
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
                 .addClasspathResource("returntest/复杂并行网关.bpmn20.xml")
@@ -62,7 +63,7 @@ public class PallergateTests extends FlowBase {
         System.out.println("processDefinition = " + processDefinition);
     }
 
-    @Test
+
     public void submit() {
 
 
@@ -103,6 +104,7 @@ public class PallergateTests extends FlowBase {
 
 
     @Test
+    @DisplayName("完整走完流程")
     public void okshould() {
         deploy();
         submit();
@@ -121,7 +123,7 @@ public class PallergateTests extends FlowBase {
 
     }
     @Test
-    //@Disabled
+    @DisplayName("T8-T7")
     public void okshould_case1() {
         deploy();
         submit();
@@ -143,6 +145,7 @@ public class PallergateTests extends FlowBase {
     }
 
     @Test
+    @DisplayName("T7-T5")
     public void okshould_case2() {
         deploy();
         submit();
@@ -165,6 +168,7 @@ public class PallergateTests extends FlowBase {
     }
 
     @Test
+    @DisplayName("T8-T4")
     public void okshould_case3() {
         deploy();
         submit();
@@ -189,6 +193,7 @@ public class PallergateTests extends FlowBase {
     }
 
     @Test
+    @DisplayName("串行驳回 T8-T1")
     public void okshould_case4() {
         deploy();
         submit();
@@ -221,6 +226,7 @@ public class PallergateTests extends FlowBase {
     }
 
     @Test
+    @DisplayName("驳回2次")
     public void okshould_case5() {
         deploy();
         submit();
@@ -260,6 +266,7 @@ public class PallergateTests extends FlowBase {
 
 
     @Test
+    @DisplayName("驳回 3次")
     public void okshould_case6() {
         deploy();
         submit();
@@ -292,6 +299,48 @@ public class PallergateTests extends FlowBase {
         complete("whf", "T3-1");
         complete("whf", "T3-2");
 
+        complete("whf", "T7");
+        return2Node("T8","T4");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+        complete("whf", "T7");
+        complete("whf", "T8");
+        assert listall().isEmpty();
+
+    }
+
+    @Test
+    @DisplayName("驳回 3-1")
+    public void okshould_case7() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+        return2Node("T8","T1");
+        complete("whf", "T1");
+        complete("whf", "T2");
+        complete("whf", "T4");
+        complete("whf", "T5");
+        complete("whf", "T6");
+
+
+        complete("whf", "T3");
+        complete("whf", "T3-1");
+        complete("whf", "T3-2");
+        complete("whf", "T7");
+
+        return2Node("T8","T3-1");
+
+        complete("whf", "T3-1");
         complete("whf", "T7");
         return2Node("T8","T4");
         complete("whf", "T4");

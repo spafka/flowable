@@ -4,14 +4,9 @@ package io.github.spafka.flowable;
 public enum JumpTypeEnum {
 
     /**
-     *
-     */
-    simple_serial,
-
-    /**
      * 串行
      */
-    serial,
+    simple_serial,
     /**
      * 并行
      */

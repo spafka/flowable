@@ -2,7 +2,7 @@ package io.github.spafka.flowable.returnTests;
 
 import io.github.spafka.flowable.FlowBase;
 import io.github.spafka.flowable.core.FlowService;
-import io.github.spafka.flowable.service.FlowNodeDto;
+import io.github.spafka.flowable.service.Graphs;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.engine.*;
@@ -10,18 +10,14 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,12 +26,14 @@ import java.util.Objects;
  */
 @SpringBootTest
 
-public class SubProcessTests extends FlowBase {
+public class InclusivegatewayTests extends FlowBase {
 
-    private static final String key = "pg01";
+    private static final String key = "ig01";
 
     @Autowired
     DataSource dataSource;
+    @Resource
+    protected HistoryService historyService;
     @Autowired
     ProcessEngine processEngine;
     @Autowired
@@ -47,15 +45,14 @@ public class SubProcessTests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "嵌套子流程2";
+    String processName = "1开3相容";
 
     static int i = 0;
 
-    @Test
 
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/嵌套子流程2.bpmn20.xml")
+                .addClasspathResource("returntest/1开3相容.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -67,7 +64,7 @@ public class SubProcessTests extends FlowBase {
         System.out.println("processDefinition = " + processDefinition);
     }
 
-    @Test
+
     public void submit() {
 
 
@@ -79,10 +76,9 @@ public class SubProcessTests extends FlowBase {
 
 
         Map<String, Object> variables = new HashMap<>();
-        variables.put("days", 22);
+        variables.put("days", 3);
         variables.put("initiator", "whf");
         variables.put("INITIATOR", "whf");
-
         variables.put("status", "approve");
         variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
 
@@ -100,96 +96,15 @@ public class SubProcessTests extends FlowBase {
 
     }
 
-
     @Test
-    public void trace() {
-
-
-        System.out.println();
-    }
-
-
-    @Test
-    @DisplayName("子流程内跳转")
-    public void test_ok() {
+    @DisplayName("完整走完流程")
+    public void okshould() {
         deploy();
         submit();
-        complete("whf","T3");
-        complete("whf","T4");
-        complete("whf","T5");
-        return2Node("T6","T4");
-        complete("whf","T4");
-        complete("whf","T6");
-
-        complete("whf","T2");
-        complete("whf","T8");
-
-        assert listall().isEmpty();
-
-    }
-    @Test
-    @DisplayName("子流程内跳转2")
-    public void okshould_case1() {
-        deploy();
-        submit();
-        complete("whf","T2");
-        complete("whf","T3");
-        complete("whf","T4");
-        complete("whf","T5");
-        return2Node("T6","T4");
-        complete("whf","T4");
-        complete("whf","T6");
-
-
-        complete("whf","T8");
-
-        assert listall().isEmpty();
-
-    }
-
-    @Test
-    @DisplayName("子流程内跳转至父流程路径上")
-    public void okshould_case2() {
-        deploy();
-        submit();
-        complete("whf","T2");
-        complete("whf","T3");
-        complete("whf","T4");
-        complete("whf","T5");
-        return2Node("T6","T1");
-        complete("whf","T1");
-        complete("whf","T2");
-        complete("whf","T3");
-        complete("whf","T4");
-        complete("whf","T5");
-        complete("whf","T6");
-        complete("whf","T8");
-
-        assert listall().isEmpty();
-
-
-    }
-
-    @Test
-    public void okshould_case3() {
-        deploy();
-        submit();
-        complete("whf", "T2");
-        complete("whf", "T4");
-        complete("whf", "T5");
-        complete("whf", "T6");
-
-
+        complete("whf", "T2-1");
+        complete("whf", "T2-2");
+        complete("whf", "T2-3");
         complete("whf", "T3");
-        complete("whf", "T3-1");
-        complete("whf", "T3-2");
-        complete("whf", "T7");
-        return2Node("T8","T4");
-        complete("whf", "T4");
-        complete("whf", "T5");
-        complete("whf", "T6");
-        complete("whf", "T7");
-        complete("whf", "T8");
         assert listall().isEmpty();
 
     }
