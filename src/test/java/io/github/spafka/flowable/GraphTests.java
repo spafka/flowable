@@ -175,6 +175,7 @@ public class GraphTests {
         System.out.println();
 
     }
+
     @Test
     public void testInclusiveGate() {
         String xml = "嵌套相容子流程.bpmn20.xml";
@@ -190,7 +191,19 @@ public class GraphTests {
         String xml = "supos.bpmn20.xml";
         BpmnModel bpmnModel = init(xml);
 
-        var r = Graphs.backTrack(bpmnModel, "UserTask_1621823731368",null);
+        var r = Graphs.backTrack(bpmnModel, "UserTask_1621823731368", null);
+        System.out.println();
+
+    }
+
+    @Test
+    public void testStartTimeEvent() {
+        String xml = "src/main/resources/event/start_time_event.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        Collection<FlowElement> flowElements = bpmnModel.getMainProcess().getFlowElements();
+
+        var r = Graphs.backTrack(bpmnModel, null, null);
         System.out.println();
 
     }

@@ -1,5 +1,6 @@
 package io.github.spafka.flowable;
 
+import com.google.common.collect.Maps;
 import io.github.spafka.flowable.listerener.listener.TaskCompleteListener;
 import io.github.spafka.flowable.listerener.listener.TaskCreateListener;
 import io.github.spafka.flowable.listerener.listener.TaskDeleteListener;
@@ -10,10 +11,10 @@ import org.flowable.common.engine.api.delegate.event.FlowableEngineEventType;
 import org.flowable.common.engine.api.delegate.event.FlowableEvent;
 import org.flowable.common.engine.api.delegate.event.FlowableEventDispatcher;
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener;
+import org.flowable.common.engine.impl.el.DefaultExpressionManager;
 import org.flowable.engine.delegate.event.impl.FlowableEntityEventImpl;
 import org.flowable.engine.delegate.event.impl.FlowableEntityWithVariablesEventImpl;
 import org.flowable.engine.impl.db.DbIdGenerator;
-import org.flowable.spring.SpringExpressionManager;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.flowable.spring.boot.EngineConfigurationConfigurer;
 import org.flowable.task.service.impl.persistence.entity.TaskEntity;
@@ -64,7 +65,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
         engineConfiguration.setIdGenerator(new DbIdGenerator());
         engineConfiguration.setCreateDiagramOnDeploy(true);
         engineConfiguration.setDisableIdmEngine(true);
-        engineConfiguration.setExpressionManager(new SpringExpressionManager(applicationContext, engineConfiguration.getBeans()));
+        engineConfiguration.setExpressionManager(new DefaultExpressionManager(Maps.newConcurrentMap()));
 
         // 设置流程监听器
         Map<String, List<FlowableEventListener>> listenerMap = new HashMap<>(8);

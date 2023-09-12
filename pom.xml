@@ -13,6 +13,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>2.6.13</spring-boot.version>
         <druid.version>1.2.16</druid.version>
+        <flowable.version>6.7.2</flowable.version>
     </properties>
     <dependencies>
         <dependency>
@@ -54,33 +55,17 @@
         <dependency>
             <groupId>org.flowable</groupId>
             <artifactId>flowable-engine</artifactId>
-            <version>6.4.2</version>
+            <version>${flowable.version}</version>
         </dependency>
         <dependency>
             <groupId>org.flowable</groupId>
             <artifactId>flowable-spring-boot-starter</artifactId>
-            <version>6.4.2</version>
+            <version>${flowable.version}</version>
             <!-- 排除flowable自带的权限认证 -->
             <exclusions>
                 <exclusion>
                     <groupId>org.flowable</groupId>
                     <artifactId>flowable-spring-security</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>flowable-cmmn-engine</artifactId>
-                    <groupId>org.flowable</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>flowable-dmn-engine</artifactId>
-                    <groupId>org.flowable</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>flowable-app-engine</artifactId>
-                    <groupId>org.flowable</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>flowable-idm-engine</artifactId>
-                    <groupId>org.flowable</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -147,6 +132,40 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>ui</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <!--flowable ui-->
+                <dependency>
+                    <groupId>org.flowable</groupId>
+                    <artifactId>flowable-spring-boot-starter-ui-modeler</artifactId>
+                    <version>${flowable.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.flowable</groupId>
+                    <artifactId>flowable-spring-boot-starter-ui-idm</artifactId>
+                    <version>${flowable.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.flowable</groupId>
+                    <artifactId>flowable-spring-boot-starter-ui-admin</artifactId>
+                    <version>${flowable.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.flowable</groupId>
+                    <artifactId>flowable-spring-boot-starter-ui-task</artifactId>
+                    <version>${flowable.version}</version>
+                </dependency>
+                <!--flowable ui-->
+
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>

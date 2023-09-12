@@ -16,10 +16,13 @@ import java.io.Serializable;
 public class SaveExecutionCmd implements Command<Void>, Serializable {
     private static final long serialVersionUID = 1L;
     protected ExecutionEntity entity;
+    IdGenerator idGenerator;
 
 
-    public SaveExecutionCmd(ExecutionEntity entity) {
-        this.entity = entity;;
+    public SaveExecutionCmd(ExecutionEntity entity, IdGenerator idGenerator) {
+        this.entity = entity;
+        this.idGenerator = idGenerator;
+        ;
     }
 
     @Override
@@ -28,7 +31,7 @@ public class SaveExecutionCmd implements Command<Void>, Serializable {
             throw new RuntimeException("executionEntity is null");
         } else {
             log.info("执行 SaveExecutionCmd {}", entity);
-            CommandContextUtil.getDbSqlSession(commandContext).insert(this.entity);
+            CommandContextUtil.getDbSqlSession(commandContext).insert(this.entity, idGenerator);
         }
         return null;
     }

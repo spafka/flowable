@@ -232,6 +232,6 @@ public class MainReturnService implements ReturnService {
         executionEntity.setStartTime(new Date());
         ((ExecutionEntityImpl) executionEntity).setCountEnabled(true);
 
-        managementService.executeCommand(new SaveExecutionCmd(executionEntity));
+        managementService.executeCommand(new SaveExecutionCmd(executionEntity,idGenerator));
     }
 }
