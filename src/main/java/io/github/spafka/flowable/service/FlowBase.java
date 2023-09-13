@@ -1,4 +1,4 @@
-package io.github.spafka.flowable;
+package io.github.spafka.flowable.service;
 
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.core.JoinUtils;
@@ -138,7 +138,7 @@ public class FlowBase {
 
         task = all.stream().filter(x -> x.getName().equals(taskName) || Objects.isNull(taskName) || x.getTaskDefinitionKey().equals(taskName)).findFirst().get();
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
-        List<FlowNodeDto> backNodes = flowService.getBackNodes(taskName);
+        List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
 
         List<FlowNodeDto> flowNodeDtos = JoinUtils.sortJoin(backNodes,
                 list,

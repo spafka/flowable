@@ -1,6 +1,6 @@
 package io.github.spafka.flowable.deep;
 
-import io.github.spafka.flowable.JumpTypeEnum;
+
 import io.github.spafka.flowable.core.TopologyNode;
 import io.github.spafka.flowable.service.Graphs;
 import io.vavr.Tuple3;

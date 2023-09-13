@@ -2,6 +2,7 @@ package io.github.spafka.flowable.service;
 
 
 import org.flowable.bpmn.model.BpmnModel;
+import org.flowable.task.api.Task;
 
 import java.util.List;
 
@@ -29,5 +30,5 @@ public interface ReturnService {
      * @param targetId userTask id
      * @return
      */
-    boolean returnToTarget(String taskId,String currentId, String targetId);
+    boolean returnToTarget(Task task, String targetId);
 }

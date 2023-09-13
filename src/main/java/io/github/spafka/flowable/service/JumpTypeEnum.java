@@ -1,4 +1,4 @@
-package io.github.spafka.flowable;
+package io.github.spafka.flowable.service;
 
 
 public enum JumpTypeEnum {

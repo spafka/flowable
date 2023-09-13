@@ -2,13 +2,13 @@ package io.github.spafka.flowable.service;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.github.spafka.flowable.JumpTypeEnum;
 import io.github.spafka.flowable.core.FlowableUtils;
 import io.github.spafka.flowable.core.TopologyNode;
 import io.vavr.Tuple;
 import io.vavr.Tuple3;
 import io.vavr.Tuple4;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
@@ -59,7 +59,6 @@ public class Graphs {
          * 起始节点,如果是事件子流程，起始节点只能是事件子流程的起始节点
          */
         FlowElement start = flowElements.stream().filter(x -> x instanceof StartEvent && x.getParentContainer() instanceof Process).findFirst().get();
-
 
 
         if (StringUtils.isBlank(beforeNode)) {
@@ -113,7 +112,6 @@ public class Graphs {
                     } else {
 
 //                        List<EventDefinition> eventDefinitions = node.getEventDefinitions();
-//
 //                        eventDefinitions.forEach(x -> {
 //                            if (x instanceof SignalEventDefinition) {
 //                                String signalRef = ((SignalEventDefinition) x).getSignalRef();
@@ -153,13 +151,50 @@ public class Graphs {
         });
 
 
-        indexMap.forEach((k, v) -> buildParallelGatewayForkJoin(v, indexMap, process));
-        List<LinkedList<TopologyNode<BaseElement>>> res=new ArrayList<>();
 
-        findPathFromBehind(indexMap,beforeNode,lastNode,res,new LinkedList<>(),Sets.newHashSet());
-        if (res.isEmpty()){
+        // 处理边界事件，边界事件 作为next 加入到当前事件
+        indexMap.forEach((k, v) -> {
+            if (v.node instanceof BoundaryEvent) {
+                Activity attachedToRef = ((BoundaryEvent) v.node).getAttachedToRef();
+                TopologyNode<BaseElement> node = indexMap.get(attachedToRef.getId());
+                node.addNext(v);
+                v.addSource(node);
+            }
+        });
+        indexMap.forEach((k, v) -> {
+            if (v.node instanceof StartEvent) {
+                StartEvent node = (StartEvent) v.node;
+                List<EventDefinition> eventDefinitions = node.getEventDefinitions();
+                eventDefinitions.forEach(x -> {
+                    if (x instanceof SignalEventDefinition) {
+                        String signalRef = ((SignalEventDefinition) x).getSignalRef();
+                        TopologyNode<BaseElement> sig = indexMap.get(signalRef);
+                        v.addSource(sig);
+                        sig.addNext(v);
+                    }
+                });
+            }
+            if (v.node instanceof ThrowEvent) {
+                ThrowEvent node = (ThrowEvent) v.node;
+                List<EventDefinition> eventDefinitions = node.getEventDefinitions();
+                eventDefinitions.forEach(x -> {
+                    if (x instanceof SignalEventDefinition) {
+                        String signalRef = ((SignalEventDefinition) x).getSignalRef();
+                        TopologyNode<BaseElement> sig = indexMap.get(signalRef);
+                        v.addNext(sig);
+                        sig.addSource(v);
+                    }
+                });
+            }
+        });
+
+        indexMap.forEach((k, v) -> buildParallelGatewayForkJoin(v, indexMap, process));
+        List<LinkedList<TopologyNode<BaseElement>>> res = new ArrayList<>();
+
+        findPathFromBehind(indexMap, beforeNode, lastNode, res, new LinkedList<>(), Sets.newHashSet());
+        if (res.isEmpty()) {
             TopologyNode<BaseElement> eventSubProcess = indexMap.get(lastNode);
-            beforeNode= ((FlowElement) eventSubProcess.node).getParentContainer().getFlowElements().stream().filter(x->x instanceof StartEvent).findFirst().get().getId();
+            beforeNode = ((FlowElement) eventSubProcess.node).getParentContainer().getFlowElements().stream().filter(x -> x instanceof StartEvent).findFirst().get().getId();
         }
 
         return Tuple.of(indexMap, lastNode, beforeNode);

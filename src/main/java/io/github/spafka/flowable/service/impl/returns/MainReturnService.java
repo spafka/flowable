@@ -1,14 +1,12 @@
 package io.github.spafka.flowable.service.impl.returns;
 
-import io.github.spafka.flowable.JumpTypeEnum;
+import io.github.spafka.flowable.service.JumpTypeEnum;
 import io.github.spafka.flowable.core.TopologyNode;
 import io.github.spafka.flowable.service.FlowNodeDto;
 import io.github.spafka.flowable.service.Graphs;
 import io.github.spafka.flowable.service.ReturnService;
-import io.github.spafka.flowable.service.impl.returns.SaveExecutionCmd;
-import io.github.spafka.tuple.Tuple2;
 import io.github.spafka.util.JoinUtils;
-import io.vavr.Tuple3;
+import io.vavr.collection.Stream;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.flowable.bpmn.model.*;
@@ -85,11 +83,11 @@ public class MainReturnService implements ReturnService {
         List<FlowNodeDto> backNodes = processed
                 .stream()
                 .filter(x -> x.node instanceof UserTask)
-                .map(x -> new FlowNodeDto(x.node.getId(),((UserTask)( x.node)).getName()))
+                .map(x -> new FlowNodeDto(x.node.getId(), ((UserTask) (x.node)).getName()))
                 .collect(Collectors.toList());
 
 
-        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
+        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list().stream().filter(x -> x.getEndTime() != null).collect(Collectors.toList());
 
         list = list.stream().filter(new Predicate<HistoricTaskInstance>() {
 
@@ -110,9 +108,10 @@ public class MainReturnService implements ReturnService {
     }
 
     @Override
-    public boolean returnToTarget(String processInstanceId, String currentId, String targetId) {
+    public boolean returnToTarget(Task task, String targetId) {
+        String currentId = task.getTaskDefinitionKey();
 
-
+        String processInstanceId = task.getProcessInstanceId();
         List<Task> list = taskService.createTaskQuery()
                 .processInstanceId(processInstanceId)
                 .list();
@@ -133,6 +132,26 @@ public class MainReturnService implements ReturnService {
         var topologyNode = indexMap.get(targetId);
         if (tuple._1 == JumpTypeEnum.simple_serial) {
             log.info("简单串行驳回 {} 2 {}", currentId, targetId);
+
+            List<HistoricTaskInstance> taskInstances = historyService.createHistoricTaskInstanceQuery()
+                    .processInstanceId(processInstanceId).orderByHistoricTaskInstanceStartTime().asc().list();
+
+            LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
+            TopologyNode<BaseElement> head = topologyNodes.getLast();
+            TopologyNode<BaseElement> tail = topologyNodes.getFirst();
+
+
+            List<HistoricTaskInstance> javaList = Stream.ofAll(taskInstances.stream()).reverse()
+                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), head.node.getId()))
+                    .reverse()
+                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), tail.node.getId()))
+                    .reverse().toJavaList();
+            List<TopologyNode<BaseElement>> betweenNodes = tuple._2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+
+            List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(x -> x.node.getId()), (a, b) -> a.getTaskDefinitionKey().compareTo(b.node.getId()), (a, b) -> a);
+
+            toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
+
             runtimeService.createChangeActivityStateBuilder()
                     .processInstanceId(processInstanceId)
                     .moveActivityIdTo(currentId, targetId)
@@ -149,6 +168,27 @@ public class MainReturnService implements ReturnService {
                     .distinct().collect(Collectors.toList());
             List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
             log.info("当前executions {} {}", executionIds, executions);
+
+
+            List<HistoricTaskInstance> taskInstances = historyService.createHistoricTaskInstanceQuery()
+                    .processInstanceId(processInstanceId).orderByHistoricTaskInstanceStartTime().asc().list();
+
+            LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
+            TopologyNode<BaseElement> head = topologyNodes.getLast();
+            TopologyNode<BaseElement> tail = topologyNodes.getFirst();
+
+            List<HistoricTaskInstance> javaList = Stream.ofAll(taskInstances.stream()).reverse()
+                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), head.node.getId()))
+                    .reverse()
+                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), tail.node.getId()))
+                    .reverse().toJavaList();
+            List<TopologyNode<BaseElement>> betweenNodes = tuple._2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+
+            List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(x -> x.node.getId()), (a, b) -> a.getTaskDefinitionKey().compareTo(b.node.getId()), (a, b) -> a);
+
+            toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
+
+
             runtimeService.createChangeActivityStateBuilder()
                     .processInstanceId(processInstanceId)
                     .moveExecutionsToSingleActivityId(executionIds, targetId)
@@ -172,7 +212,7 @@ public class MainReturnService implements ReturnService {
 
             TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> parentGates = indexMap.get(targetId).gateways;
             TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> currentGates = indexMap.get(currentId).gateways;
-            List<TopologyNode<BaseElement>> endGates = JoinUtils.leftOnly(new ArrayList<>(currentGates), new ArrayList<>(parentGates), (a, b) -> a.node.getId().equals(b.node.getId())).stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
+            List<TopologyNode> endGates = JoinUtils.leftOnly(new ArrayList<>(currentGates), new ArrayList<>(parentGates), (a, b) -> a.node.getId().equals(b.node.getId())).stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
 
 
             LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
@@ -232,6 +272,6 @@ public class MainReturnService implements ReturnService {
         executionEntity.setStartTime(new Date());
         ((ExecutionEntityImpl) executionEntity).setCountEnabled(true);
 
-        managementService.executeCommand(new SaveExecutionCmd(executionEntity,idGenerator));
+        managementService.executeCommand(new SaveExecutionCmd(executionEntity, idGenerator));
     }
 }

@@ -102,9 +102,9 @@ public class FlowService {
 
     }
 
-    public List<FlowNodeDto> getBackNodes(String id) {
+    public List<FlowNodeDto> getBackNodes(String taskId) {
 
-        return returnService.getCanRejectedFlowNode(bpmnService.getBpmnModelByFlowableTaskId(id), id, "");
+        return returnService.getCanRejectedFlowNode(bpmnService.getBpmnModelByFlowableTaskId(taskId), taskId, "");
 
 
     }
@@ -115,7 +115,7 @@ public class FlowService {
         Task task = taskService.createTaskQuery()
                 .taskId(taskId).singleResult();
 
-        returnService.returnToTarget(task.getProcessInstanceId(), task.getTaskDefinitionKey(), to);
+        returnService.returnToTarget(task, to);
 
 
 

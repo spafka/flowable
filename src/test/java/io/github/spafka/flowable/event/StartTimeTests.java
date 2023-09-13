@@ -1,6 +1,6 @@
 package io.github.spafka.flowable.event;
 
-import io.github.spafka.flowable.FlowBase;
+import io.github.spafka.flowable.service.FlowBase;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.engine.repository.Deployment;

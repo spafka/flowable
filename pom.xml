@@ -13,7 +13,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>2.6.13</spring-boot.version>
         <druid.version>1.2.16</druid.version>
-        <flowable.version>6.7.2</flowable.version>
+        <flowable.version>6.6.0</flowable.version>
     </properties>
     <dependencies>
         <dependency>
@@ -68,6 +68,12 @@
                     <artifactId>flowable-spring-security</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flowable</groupId>
+            <artifactId>flowable-spring</artifactId>
+            <version>${flowable.version}</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

@@ -207,4 +207,17 @@ public class GraphTests {
         System.out.println();
 
     }
+
+    @Test
+    public void testSimpleTimeEvent() {
+        String xml = "回归测试.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+        Collection<FlowElement> flowElements = bpmnModel.getMainProcess().getFlowElements();
+
+
+        var r = Graphs.backTrack(bpmnModel, "T4", "startNode");
+        System.out.println();
+
+    }
 }
