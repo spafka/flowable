@@ -130,28 +130,56 @@ public class MainReturnService implements ReturnService {
         Map<String, TopologyNode<BaseElement>> indexMap = tuple._4;
 
         var topologyNode = indexMap.get(targetId);
+
+        {
+            if (tuple._1 == JumpTypeEnum.simple_serial || tuple._1 == JumpTypeEnum.paral_to_child) {
+                List<HistoricTaskInstance> taskInstances = historyService.createHistoricTaskInstanceQuery()
+                        .processInstanceId(processInstanceId).orderByHistoricTaskInstanceStartTime().asc().list();
+
+                LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
+                TopologyNode<BaseElement> head = topologyNodes.getLast();
+                TopologyNode<BaseElement> tail = topologyNodes.getFirst();
+
+                List<HistoricTaskInstance> javaList = Stream.ofAll(taskInstances.stream()).dropUntil(x -> x.getTaskDefinitionKey().equals(head.node.getId())).dropRightUntil(x -> x.getTaskDefinitionKey().equals(tail.node.getId())).toJavaList();
+
+                List<TopologyNode<BaseElement>> betweenNodes = tuple._2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+
+                List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(x -> x.node.getId()), (a, b) -> a.getTaskDefinitionKey().compareTo(b.node.getId()), (a, b) -> a);
+                log.info("{} => {} , to delete task his {}", task.getTaskDefinitionKey(), targetId, toDeleteHistory.stream().map(x -> x.getTaskDefinitionKey()).collect(Collectors.toList()));
+
+                toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
+            } else {
+                List<HistoricTaskInstance> taskInstances = historyService.createHistoricTaskInstanceQuery()
+                        .processInstanceId(processInstanceId).orderByHistoricTaskInstanceStartTime().asc().list();
+
+                var more = indexMap.get(currentId).gateways.stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
+                var less = indexMap.get(targetId).gateways.stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
+
+                List<TopologyNode<BaseElement>> endGates = JoinUtils.leftOnly(more, less, (a, b) -> a == b);
+
+                LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
+
+                endGates.forEach(x -> Graphs.currentToEndAllPath(topologyNode, x.node.getId(), new LinkedList<>(), pathToEnd));
+
+
+                LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
+                TopologyNode<BaseElement> head = topologyNodes.getLast();
+                TopologyNode<BaseElement> tail = topologyNodes.getFirst();
+
+                List<HistoricTaskInstance> javaList = taskInstances;
+                var betweenNodes = pathToEnd.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+
+                List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(BaseElement::getId), (a, b) -> a.getTaskDefinitionKey().compareTo(b.getId()), (a, b) -> a);
+                log.info("{} => {} , to delete task his {}", task.getTaskDefinitionKey(), targetId, toDeleteHistory.stream().map(x -> x.getTaskDefinitionKey()).collect(Collectors.toList()));
+
+                toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
+
+            }
+
+        }
+
         if (tuple._1 == JumpTypeEnum.simple_serial) {
             log.info("简单串行驳回 {} 2 {}", currentId, targetId);
-
-            List<HistoricTaskInstance> taskInstances = historyService.createHistoricTaskInstanceQuery()
-                    .processInstanceId(processInstanceId).orderByHistoricTaskInstanceStartTime().asc().list();
-
-            LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
-            TopologyNode<BaseElement> head = topologyNodes.getLast();
-            TopologyNode<BaseElement> tail = topologyNodes.getFirst();
-
-
-            List<HistoricTaskInstance> javaList = Stream.ofAll(taskInstances.stream()).reverse()
-                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), head.node.getId()))
-                    .reverse()
-                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), tail.node.getId()))
-                    .reverse().toJavaList();
-            List<TopologyNode<BaseElement>> betweenNodes = tuple._2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
-
-            List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(x -> x.node.getId()), (a, b) -> a.getTaskDefinitionKey().compareTo(b.node.getId()), (a, b) -> a);
-
-            toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
-
             runtimeService.createChangeActivityStateBuilder()
                     .processInstanceId(processInstanceId)
                     .moveActivityIdTo(currentId, targetId)
@@ -168,25 +196,6 @@ public class MainReturnService implements ReturnService {
                     .distinct().collect(Collectors.toList());
             List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
             log.info("当前executions {} {}", executionIds, executions);
-
-
-            List<HistoricTaskInstance> taskInstances = historyService.createHistoricTaskInstanceQuery()
-                    .processInstanceId(processInstanceId).orderByHistoricTaskInstanceStartTime().asc().list();
-
-            LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
-            TopologyNode<BaseElement> head = topologyNodes.getLast();
-            TopologyNode<BaseElement> tail = topologyNodes.getFirst();
-
-            List<HistoricTaskInstance> javaList = Stream.ofAll(taskInstances.stream()).reverse()
-                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), head.node.getId()))
-                    .reverse()
-                    .takeUntil(x -> Objects.equals(x.getTaskDefinitionKey(), tail.node.getId()))
-                    .reverse().toJavaList();
-            List<TopologyNode<BaseElement>> betweenNodes = tuple._2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
-
-            List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(x -> x.node.getId()), (a, b) -> a.getTaskDefinitionKey().compareTo(b.node.getId()), (a, b) -> a);
-
-            toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
 
 
             runtimeService.createChangeActivityStateBuilder()

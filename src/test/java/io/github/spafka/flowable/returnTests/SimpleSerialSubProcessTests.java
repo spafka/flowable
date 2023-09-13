@@ -266,6 +266,8 @@ public class SimpleSerialSubProcessTests extends FlowBase {
         complete("whf", "T2");
         complete("whf", "T2-2");
         complete("whf", "T3");
+        complete("whf","T9");
+        complete("whf","T10");
         return2Node("T7", "T1");
 
 

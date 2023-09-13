@@ -151,7 +151,6 @@ public class Graphs {
         });
 
 
-
         // 处理边界事件，边界事件 作为next 加入到当前事件
         indexMap.forEach((k, v) -> {
             if (v.node instanceof BoundaryEvent) {
@@ -410,6 +409,9 @@ public class Graphs {
      */
     public static void currentToEndAllPath(TopologyNode<BaseElement> head, String tail, LinkedList<FlowElement> path, LinkedList<LinkedList<FlowElement>> res) {
 
+        if (path.isEmpty()) {
+            path.add(((FlowElement) head.node));
+        }
         if (tail == null) {
             // 直到非子流程的终止节点
             if (head.node instanceof EndEvent && ((FlowElement) (head.node)).getParentContainer() instanceof Process) {

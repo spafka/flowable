@@ -88,12 +88,12 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
 
                     FlowableEntityEventImpl flowableEvent1 = (FlowableEntityEventImpl) flowableEvent;
                     TaskEntity taskEntity = (TaskEntity) flowableEvent1.getEntity();
-                    log.info("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskEntity.getExecutionId());
+                    log.debug("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskEntity.getExecutionId());
 
                 } else {
                     FlowableEntityWithVariablesEventImpl taskComplete = (FlowableEntityWithVariablesEventImpl) flowableEvent;
                     TaskEntity taskEntity = (TaskEntity) taskComplete.getEntity();
-                    log.info("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskComplete.getExecutionId());
+                    log.debug("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskComplete.getExecutionId());
                 }
             }
 
@@ -118,7 +118,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
 
                 org.flowable.common.engine.impl.event.FlowableEntityEventImpl taskCreate = (org.flowable.common.engine.impl.event.FlowableEntityEventImpl) flowableEvent;
                 TaskEntity taskEntity = (TaskEntity) taskCreate.getEntity();
-                log.info("任务创建 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskCreate.getExecutionId());
+                log.debug("任务创建 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskCreate.getExecutionId());
             }
 
             @Override
@@ -145,7 +145,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
                 String processInstanceId = ((FlowableEntityEventImpl) flowableEvent).getProcessInstanceId();
                 System.err.println(processInstanceId + "任务完成");
 
-                log.info("{} 任务完成", processInstanceId);
+                log.debug("{} 任务完成", processInstanceId);
             }
 
             @Override
