@@ -89,7 +89,7 @@ public class MainReturnService implements ReturnService {
 
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list().stream().filter(x -> x.getEndTime() != null).collect(Collectors.toList());
 
-        list = list.stream().filter(new Predicate<HistoricTaskInstance>() {
+        list = list.stream().filter(new Predicate<>() {
 
             Set<String> s = new HashSet<>();
 
@@ -104,7 +104,7 @@ public class MainReturnService implements ReturnService {
                 Comparator.comparing(FlowNodeDto::getId),
                 Comparator.comparing(TaskInfo::getTaskDefinitionKey)
                 , (a, b) -> a.getId().compareTo(b.getTaskDefinitionKey()),
-                (a, b) -> a);
+                (a, b) -> a).stream().filter(x -> !x.getId().equals(task.getTaskDefinitionKey())).collect(Collectors.toList());
     }
 
     @Override
@@ -161,16 +161,11 @@ public class MainReturnService implements ReturnService {
 
                 endGates.forEach(x -> Graphs.currentToEndAllPath(topologyNode, x.node.getId(), new LinkedList<>(), pathToEnd));
 
-
-                LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
-                TopologyNode<BaseElement> head = topologyNodes.getLast();
-                TopologyNode<BaseElement> tail = topologyNodes.getFirst();
-
                 List<HistoricTaskInstance> javaList = taskInstances;
                 var betweenNodes = pathToEnd.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
 
                 List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(BaseElement::getId), (a, b) -> a.getTaskDefinitionKey().compareTo(b.getId()), (a, b) -> a);
-                log.info("{} => {} , to delete task his {}", task.getTaskDefinitionKey(), targetId, toDeleteHistory.stream().map(x -> x.getTaskDefinitionKey()).collect(Collectors.toList()));
+                log.info("{} => {} , to delete task his {}", task.getTaskDefinitionKey(), targetId, toDeleteHistory.stream().map(TaskInfo::getTaskDefinitionKey).collect(Collectors.toList()));
 
                 toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
 

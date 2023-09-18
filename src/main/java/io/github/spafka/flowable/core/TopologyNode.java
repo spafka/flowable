@@ -2,6 +2,7 @@ package io.github.spafka.flowable.core;
 
 import org.flowable.bpmn.model.BaseElement;
 import org.flowable.bpmn.model.FlowElement;
+import org.flowable.bpmn.model.UserTask;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,8 +16,8 @@ public class TopologyNode<T extends BaseElement> implements Comparable<TopologyN
 
     public SkipList<TopologyNode<T>> gateways = new SkipList<>();
 
-   public Set<TopologyNode<T>> forks = new HashSet<>();
-   public TopologyNode<T> join;
+    public Set<TopologyNode<T>> forks = new HashSet<>();
+    public TopologyNode<T> join;
 
     public TopologyNode(T node) {
         this.node = node;
@@ -45,17 +46,19 @@ public class TopologyNode<T extends BaseElement> implements Comparable<TopologyN
     public void addGate(TopologyNode<T> gate) {
         gateways.add(gate);
     }
+
     public void addFork(TopologyNode<T> gate) {
 
         gateways.add(gate);
         forks.add(gate);
     }
+
     public void addNext(TopologyNode<T> source) {
         next.add(source);
     }
 
     @Override
     public String toString() {
-        return node.getId();
+        return node instanceof UserTask ? ((UserTask) node).getName() : node.getId();
     }
 }

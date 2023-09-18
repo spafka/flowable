@@ -1,5 +1,6 @@
 package io.github.spafka.flowable;
 
+import io.github.spafka.flowable.core.FlowableUtils;
 import io.github.spafka.flowable.core.TopologyNode;
 import io.github.spafka.flowable.service.Graphs;
 import io.vavr.Tuple3;
@@ -210,14 +211,19 @@ public class GraphTests {
 
     @Test
     public void testSimpleTimeEvent() {
-        String xml = "回归测试.bpmn20.xml";
+        String xml = "aa.xml";
         BpmnModel bpmnModel = init(xml);
 
         Collection<FlowElement> flowElements = bpmnModel.getMainProcess().getFlowElements();
 
 
-        var r = Graphs.backTrack(bpmnModel, "T4", "startNode");
+        var r = Graphs.backTrack(bpmnModel, "UserTask_1694589756473", "UserTask_1694588579853");
+
+        boolean reachable = FlowableUtils.isReachable(bpmnModel.getMainProcess(), "UserTask_1694589756473", "UserTask_1694588579853");
+        boolean reachable1 = FlowableUtils.isReachable(bpmnModel.getMainProcess(), "UserTask_1694588579853", "UserTask_1694589756473");
         System.out.println();
 
     }
+
+
 }

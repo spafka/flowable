@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="http://www.flowable.org/processdef">
+    <process id="K3737953855359697" name="qqqq">
+        <startEvent id="tag_1" name="启动流程" flowable:initiator="startUser" flowable:startOnMobile="true"/>
+        <userTask id="UserTask_1694588578831" name="发起绩效" flowable:showlog="true" flowable:renderOnMobile="true"
+                  flowable:enableNotify="true" flowable:enableEntrust="true" flowable:url="page">
+            <extensionElements>
+                <flowable:commentRule rule="nonMandatory"/>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1694588578832" sourceRef="tag_1" targetRef="UserTask_1694588578831" flowable:order="1"/>
+        <userTask id="UserTask_1694588579853" name="领导打分" flowable:showlog="true" flowable:renderOnMobile="true"
+                  flowable:enableNotify="true" flowable:enableEntrust="true" flowable:url="page"
+                  flowable:enableNodeBack="true" flowable:enableStepBack="true">
+            <extensionElements>
+                <flowable:commentRule rule="nonMandatory"/>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1694588579853" sourceRef="UserTask_1694588578831" targetRef="UserTask_1694588579853"
+                      flowable:order="1"/>
+        <exclusiveGateway id="ExclusiveGateway_1694588990449"/>
+        <sequenceFlow id="edge_1694588990450" sourceRef="UserTask_1694588579853"
+                      targetRef="ExclusiveGateway_1694588990449" flowable:order="1"/>
+        <userTask id="UserTask_1694588991513" name="项目经理1打分" flowable:showlog="true"
+                  flowable:renderOnMobile="true" flowable:enableNotify="true" flowable:enableEntrust="true"
+                  flowable:url="page" flowable:enableNodeBack="true" flowable:enableStepBack="true">
+            <extensionElements>
+                <flowable:commentRule rule="nonMandatory"/>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1694588991513" name="项目经理1打分" sourceRef="ExclusiveGateway_1694588990449"
+                      targetRef="UserTask_1694588991513" flowable:expression="${variables:get(time)&gt;=2}"
+                      flowable:order="1">
+            <conditionExpression xsi:type="tFormalExpression">${variables:get(time)&gt;=2}</conditionExpression>
+        </sequenceFlow>
+        <userTask id="UserTask_1694588997481" name="项目经理2打分" flowable:showlog="true"
+                  flowable:renderOnMobile="true" flowable:enableNotify="true" flowable:enableEntrust="true"
+                  flowable:url="page" flowable:enableStepBack="true" flowable:enableNodeBack="true">
+            <extensionElements>
+                <flowable:commentRule rule="nonMandatory"/>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1694588997482" name="项目经理2打分" sourceRef="ExclusiveGateway_1694588990449"
+                      targetRef="UserTask_1694588997481" flowable:expression="${variables:get(time)&lt;2}"
+                      flowable:order="2">
+            <conditionExpression xsi:type="tFormalExpression">${variables:get(time)&lt;2}</conditionExpression>
+        </sequenceFlow>
+        <userTask id="UserTask_1694589756473" name="存档" flowable:showlog="true" flowable:renderOnMobile="true"
+                  flowable:enableNotify="true" flowable:enableEntrust="true" flowable:url="page"
+                  flowable:enableNodeBack="true" flowable:enableStepBack="true">
+            <extensionElements>
+                <flowable:commentRule rule="nonMandatory"/>
+                <flowable:assigneeRule name="initiator" value="" posRestrict="false" groupRestrict="false"
+                                       unRestrict="true" position="" person=""/>
+                <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"/>
+                <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="edge_1694589756476" sourceRef="UserTask_1694588991513" targetRef="UserTask_1694589756473"
+                      flowable:order="1"/>
+        <endEvent id="EndEvent_1694589757481"/>
+        <sequenceFlow id="edge_1694589757482" name="结束" sourceRef="UserTask_1694589756473"
+                      targetRef="EndEvent_1694589757481" flowable:order="1"/>
+        <sequenceFlow id="edge_1694589759756" sourceRef="UserTask_1694588997481" targetRef="UserTask_1694589756473"
+                      flowable:order="1"/>
+        <sequenceFlow id="edge_1694590164178" name="回" sourceRef="UserTask_1694589756473"
+                      targetRef="UserTask_1694588579853" flowable:order="2"/>
+    </process>
+</definitions>
