@@ -63,7 +63,7 @@ public class BpmnServiceImpl implements BpmnService {
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(task.getProcessDefinitionId()).singleResult();
         // 获取所有节点信息，暂不考虑子流程情况
         byte[] bytesS = jdbcTemplate.queryForObject("SELECT BYTES_ FROM ACT_GE_BYTEARRAY WHERE NAME_ = ? and DEPLOYMENT_ID_=? ", new Object[]{processDefinition.getResourceName(), processDefinition.getDeploymentId()}, (resultSet, i) -> resultSet.getBytes("BYTES_"));
-
+        repositoryService.getBpmnModel(processDefinition.getId());
 
         return new BpmnXMLConverter().convertToBpmnModel(() -> {
                 return new ByteArrayInputStream(bytesS);
@@ -77,7 +77,7 @@ public class BpmnServiceImpl implements BpmnService {
     @Override
     public LinkedList<FlowNodeDto> getCanReturnNodes(BpmnModel bpmnModel, String instanceId, String activityName) {
 
-        return new LinkedList<>(returnService.getCanRejectedFlowNode(bpmnModel, instanceId, activityName));
+        return new LinkedList<>(returnService.getCanRejectedFlowNode(bpmnModel, instanceId, activityName).f0);
 
     }
 

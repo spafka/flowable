@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="scriptprocess" name="脚本任务" isExecutable="true">
+    <documentation>脚本任务</documentation>
+    <startEvent id="startEvent1"></startEvent>
+    <scriptTask id="javaScript" name="JavaScript脚本任务" scriptFormat="JavaScript" flowable:autoStoreVariables="false" >
+      <script><![CDATA[var sum = a+b;
+execution.setVariable("sum",sum);]]></script>
+    </scriptTask>
+    <sequenceFlow id="sid-697B7CA9-8345-4B13-BC7F-AC88AC06AF1B" sourceRef="startEvent1" targetRef="javaScript"></sequenceFlow>
+    <sequenceFlow id="sid-80B62899-0889-4F66-9110-453B6D67B370" sourceRef="javaScript" targetRef="groovy"></sequenceFlow>
+    <sequenceFlow id="sid-504E5CC2-9838-4BEC-B4A4-CFC91EE632A8" sourceRef="groovy" targetRef="juel"></sequenceFlow>
+    <userTask id="usertask" name="usertask"></userTask>
+    <sequenceFlow id="sid-86A3CDEB-7B88-4F3E-99BF-073BA1DBDB48" sourceRef="juel" targetRef="usertask"></sequenceFlow>
+    <endEvent id="sid-AD23AAB5-9B3C-4703-AC16-2D245F9F6046"></endEvent>
+    <sequenceFlow id="sid-9C8502A9-95F8-4C97-9EA9-4D3A7DB590E5" sourceRef="usertask" targetRef="sid-AD23AAB5-9B3C-4703-AC16-2D245F9F6046"></sequenceFlow>
+    <scriptTask id="groovy" name="groovy脚本任务" scriptFormat="groovy" flowable:autoStoreVariables="false">
+      <script><![CDATA[com.study.demo.script.ScriptTaskGroovy.foo()]]></script>
+    </scriptTask>
+    <scriptTask id="juel" name="juel脚本服务" scriptFormat="juel" flowable:autoStoreVariables="false" flowable:resultVariable="myVar">
+      <script><![CDATA[#{juelvar}]]></script>
+    </scriptTask>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_scriptprocess">
+    <bpmndi:BPMNPlane bpmnElement="scriptprocess" id="BPMNPlane_scriptprocess">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="100.0" y="163.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="javaScript" id="BPMNShape_javaScript">
+        <omgdc:Bounds height="80.0" width="100.0" x="240.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask" id="BPMNShape_usertask">
+        <omgdc:Bounds height="80.0" width="100.0" x="690.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-AD23AAB5-9B3C-4703-AC16-2D245F9F6046" id="BPMNShape_sid-AD23AAB5-9B3C-4703-AC16-2D245F9F6046">
+        <omgdc:Bounds height="28.0" width="28.0" x="835.0" y="164.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="groovy" id="BPMNShape_groovy">
+        <omgdc:Bounds height="80.0" width="100.0" x="400.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="juel" id="BPMNShape_juel">
+        <omgdc:Bounds height="80.0" width="100.0" x="545.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-504E5CC2-9838-4BEC-B4A4-CFC91EE632A8" id="BPMNEdge_sid-504E5CC2-9838-4BEC-B4A4-CFC91EE632A8">
+        <omgdi:waypoint x="499.94999999999067" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="544.9999999999807" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-697B7CA9-8345-4B13-BC7F-AC88AC06AF1B" id="BPMNEdge_sid-697B7CA9-8345-4B13-BC7F-AC88AC06AF1B">
+        <omgdi:waypoint x="129.94999940317362" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="239.99999999993753" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-9C8502A9-95F8-4C97-9EA9-4D3A7DB590E5" id="BPMNEdge_sid-9C8502A9-95F8-4C97-9EA9-4D3A7DB590E5">
+        <omgdi:waypoint x="789.9499999999999" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="835.0" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-80B62899-0889-4F66-9110-453B6D67B370" id="BPMNEdge_sid-80B62899-0889-4F66-9110-453B6D67B370">
+        <omgdi:waypoint x="339.9499999999329" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="399.99999999995185" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-86A3CDEB-7B88-4F3E-99BF-073BA1DBDB48" id="BPMNEdge_sid-86A3CDEB-7B88-4F3E-99BF-073BA1DBDB48">
+        <omgdi:waypoint x="644.9499999999907" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="689.9999999999807" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

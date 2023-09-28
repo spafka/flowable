@@ -1,0 +1,11 @@
+<process id="demo01" name="测试流程" isExecutable="true">
+    <documentation>测试流程</documentation>
+    <startEvent id="startEvent1" flowable:formFieldValidation="true"></startEvent>
+    <sequenceFlow id="sid-33A78082-C2FD-48BE-8B87-99FB20F0B331" sourceRef="startEvent1" targetRef="sid-8D88DFF6-0F37-42FA-9F94-29FE30536094"></sequenceFlow>
+    <endEvent id="sid-A5F11956-15EA-4574-98D0-29A4E3DB5495"></endEvent>
+    <sequenceFlow id="sid-0698809E-0A6C-4B92-A167-AE96A8CB75F2" sourceRef="sid-8D88DFF6-0F37-42FA-9F94-29FE30536094" targetRef="sid-A5F11956-15EA-4574-98D0-29A4E3DB5495"></sequenceFlow>
+    <scriptTask id="sid-8D88DFF6-0F37-42FA-9F94-29FE30536094" scriptFormat="JavaScript" flowable:autoStoreVariables="false">
+        <script><![CDATA[var sum=a+b;
+execution.setVariable("sum",sum);]]></script>
+    </scriptTask>
+</process>

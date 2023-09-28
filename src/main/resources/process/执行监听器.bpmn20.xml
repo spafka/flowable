@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="executionlistenerprocess" name="执行监听器" isExecutable="true">
+    <documentation>执行监听器</documentation>
+    <extensionElements>
+      <flowable:executionListener event="start" class="com.study.demo.executionlistener.ExampleExecutionListenerOne"></flowable:executionListener>
+    </extensionElements>
+    <startEvent id="theStart" name="theStart"></startEvent>
+    <userTask id="firstTask" name="监听器：实现ExecutionListener">
+      <extensionElements>
+        <flowable:executionListener event="start" class="com.study.demo.executionlistener.ExampleExecutionListenerTwo"></flowable:executionListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-27F68DF6-83B5-428B-9276-380956CEE242" sourceRef="theStart" targetRef="firstTask"></sequenceFlow>
+    <userTask id="secondTask" name="监听器：表达式">
+      <extensionElements>
+        <flowable:executionListener event="end" expression="${myExpression.getEventName(execution.eventName)}"></flowable:executionListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-0F9EFC8C-2006-4E7D-97C9-4322436FD936" sourceRef="firstTask" targetRef="secondTask"></sequenceFlow>
+    <userTask id="thirdtask" name="监听器：委托表达式">
+      <extensionElements>
+        <flowable:executionListener event="start" delegateExpression="${myDelegateExpression}"></flowable:executionListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-F65C34C5-4610-4903-BCFC-FA0AD19316FE" sourceRef="secondTask" targetRef="thirdtask"></sequenceFlow>
+    <userTask id="fourthtask" name="脚本执行监听器">
+      <extensionElements>
+        <flowable:executionListener event="start" class="org.flowable.engine.impl.bpmn.listener.ScriptExecutionListener">
+          <flowable:field name="script">
+            <flowable:string>
+	            def bar = "BAR";  // local variable
+	      		foo = "FOO"; // pushes variable to execution context
+	      		execution.setVariable("var1", "test"); // test access to execution instance
+	      		bar // implicit return value
+			</flowable:string>
+          </flowable:field>
+          <flowable:field name="language">
+            <flowable:string><![CDATA[groovy]]></flowable:string>
+          </flowable:field>
+          <flowable:field name="resultVariable">
+            <flowable:string><![CDATA[resultMyVar]]></flowable:string>
+          </flowable:field>
+        </flowable:executionListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-CFC4A256-3718-4998-9FBF-26B1066062DB" sourceRef="thirdtask" targetRef="fourthtask"></sequenceFlow>
+    <userTask id="sid-AACA320D-498E-4AD3-B0AA-BAC7810CAA12" name="执行监听器上的字段注入">
+      <extensionElements>
+        <flowable:executionListener event="start" class="com.study.demo.executionlistener.ExampleFieldInjectedExecutionListener">
+          <flowable:field name="fixedValue">
+            <flowable:string><![CDATA[Yes, I am]]></flowable:string>
+          </flowable:field>
+          <flowable:field name="dynamicValue">
+            <flowable:expression><![CDATA[${myVar}]]></flowable:expression>
+          </flowable:field>
+        </flowable:executionListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-BBDB1848-D4CD-43FA-9BA8-63B768F7E305" sourceRef="fourthtask" targetRef="sid-AACA320D-498E-4AD3-B0AA-BAC7810CAA12"></sequenceFlow>
+    <endEvent id="sid-E7F8FA35-ADE6-490A-ACEA-D1BB6AB811E6"></endEvent>
+    <sequenceFlow id="sid-633330CB-ED23-44C5-968D-8EA11F33EBA9" sourceRef="sid-AACA320D-498E-4AD3-B0AA-BAC7810CAA12" targetRef="sid-E7F8FA35-ADE6-490A-ACEA-D1BB6AB811E6"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_executionlistenerprocess">
+    <bpmndi:BPMNPlane bpmnElement="executionlistenerprocess" id="BPMNPlane_executionlistenerprocess">
+      <bpmndi:BPMNShape bpmnElement="theStart" id="BPMNShape_theStart">
+        <omgdc:Bounds height="30.0" width="30.0" x="105.0" y="255.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="firstTask" id="BPMNShape_firstTask">
+        <omgdc:Bounds height="80.0" width="100.0" x="255.0" y="230.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="secondTask" id="BPMNShape_secondTask">
+        <omgdc:Bounds height="80.0" width="100.0" x="435.0" y="230.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="thirdtask" id="BPMNShape_thirdtask">
+        <omgdc:Bounds height="80.0" width="100.0" x="615.0" y="230.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="fourthtask" id="BPMNShape_fourthtask">
+        <omgdc:Bounds height="80.0" width="100.0" x="810.0" y="230.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-AACA320D-498E-4AD3-B0AA-BAC7810CAA12" id="BPMNShape_sid-AACA320D-498E-4AD3-B0AA-BAC7810CAA12">
+        <omgdc:Bounds height="80.0" width="100.0" x="810.0" y="390.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-E7F8FA35-ADE6-490A-ACEA-D1BB6AB811E6" id="BPMNShape_sid-E7F8FA35-ADE6-490A-ACEA-D1BB6AB811E6">
+        <omgdc:Bounds height="28.0" width="28.0" x="675.0" y="416.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-F65C34C5-4610-4903-BCFC-FA0AD19316FE" id="BPMNEdge_sid-F65C34C5-4610-4903-BCFC-FA0AD19316FE">
+        <omgdi:waypoint x="534.95" y="270.0"></omgdi:waypoint>
+        <omgdi:waypoint x="615.0" y="270.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-0F9EFC8C-2006-4E7D-97C9-4322436FD936" id="BPMNEdge_sid-0F9EFC8C-2006-4E7D-97C9-4322436FD936">
+        <omgdi:waypoint x="354.9499999999431" y="270.0"></omgdi:waypoint>
+        <omgdi:waypoint x="434.99999999986994" y="270.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-CFC4A256-3718-4998-9FBF-26B1066062DB" id="BPMNEdge_sid-CFC4A256-3718-4998-9FBF-26B1066062DB">
+        <omgdi:waypoint x="714.9499999999803" y="270.0"></omgdi:waypoint>
+        <omgdi:waypoint x="810.0" y="270.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-BBDB1848-D4CD-43FA-9BA8-63B768F7E305" id="BPMNEdge_sid-BBDB1848-D4CD-43FA-9BA8-63B768F7E305">
+        <omgdi:waypoint x="860.0" y="309.95000000000005"></omgdi:waypoint>
+        <omgdi:waypoint x="860.0" y="390.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-633330CB-ED23-44C5-968D-8EA11F33EBA9" id="BPMNEdge_sid-633330CB-ED23-44C5-968D-8EA11F33EBA9">
+        <omgdi:waypoint x="810.0" y="430.0"></omgdi:waypoint>
+        <omgdi:waypoint x="702.949925143637" y="430.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-27F68DF6-83B5-428B-9276-380956CEE242" id="BPMNEdge_sid-27F68DF6-83B5-428B-9276-380956CEE242">
+        <omgdi:waypoint x="134.94999946593475" y="270.0"></omgdi:waypoint>
+        <omgdi:waypoint x="254.9999999999298" y="270.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="camelprocess" name="camel任务" isExecutable="true">
+    <documentation>camel任务</documentation>
+    <startEvent id="startEvent1"></startEvent>
+    <serviceTask id="simpleCall" name="Camel任务" flowable:type="camel">
+    </serviceTask>
+    <sequenceFlow id="sid-34A9EB1A-483F-4B5B-8486-C4A67402DDF1" sourceRef="startEvent1" targetRef="simpleCall"></sequenceFlow>
+    <serviceTask id="SaveOutput" name="从camel获取变量" flowable:class="com.study.demo.camel.SaveOutput"></serviceTask>
+    <sequenceFlow id="sid-CBD7D478-2A1D-4A39-8C1B-CA998EB1F873" sourceRef="simpleCall" targetRef="SaveOutput"></sequenceFlow>
+    <userTask id="usertask" name="用户任务"></userTask>
+    <sequenceFlow id="sid-E843810D-EF36-4DA3-9446-83F0D0F495C6" sourceRef="SaveOutput" targetRef="usertask"></sequenceFlow>
+    <endEvent id="sid-BE746903-E5BE-42F9-A948-7D5B8A15298D"></endEvent>
+    <sequenceFlow id="sid-4918CA71-D2AC-4AEF-8FC8-5AD3AA462238" sourceRef="usertask" targetRef="sid-BE746903-E5BE-42F9-A948-7D5B8A15298D"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_camelprocess">
+    <bpmndi:BPMNPlane bpmnElement="camelprocess" id="BPMNPlane_camelprocess">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="195.0" y="220.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="simpleCall" id="BPMNShape_simpleCall">
+        <omgdc:Bounds height="80.0" width="100.36219727999998" x="390.0" y="195.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="SaveOutput" id="BPMNShape_SaveOutput">
+        <omgdc:Bounds height="80.0" width="100.0" x="585.0" y="195.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask" id="BPMNShape_usertask">
+        <omgdc:Bounds height="80.0" width="100.0" x="720.0" y="195.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-BE746903-E5BE-42F9-A948-7D5B8A15298D" id="BPMNShape_sid-BE746903-E5BE-42F9-A948-7D5B8A15298D">
+        <omgdc:Bounds height="28.0" width="28.0" x="875.0" y="221.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-E843810D-EF36-4DA3-9446-83F0D0F495C6" id="BPMNEdge_sid-E843810D-EF36-4DA3-9446-83F0D0F495C6">
+        <omgdi:waypoint x="684.9499999999999" y="235.0"></omgdi:waypoint>
+        <omgdi:waypoint x="720.0" y="235.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-4918CA71-D2AC-4AEF-8FC8-5AD3AA462238" id="BPMNEdge_sid-4918CA71-D2AC-4AEF-8FC8-5AD3AA462238">
+        <omgdi:waypoint x="819.9499999999201" y="235.0"></omgdi:waypoint>
+        <omgdi:waypoint x="875.0" y="235.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-CBD7D478-2A1D-4A39-8C1B-CA998EB1F873" id="BPMNEdge_sid-CBD7D478-2A1D-4A39-8C1B-CA998EB1F873">
+        <omgdi:waypoint x="490.3121972799439" y="235.0"></omgdi:waypoint>
+        <omgdi:waypoint x="584.9999999999666" y="235.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-34A9EB1A-483F-4B5B-8486-C4A67402DDF1" id="BPMNEdge_sid-34A9EB1A-483F-4B5B-8486-C4A67402DDF1">
+        <omgdi:waypoint x="224.94999965497908" y="235.0"></omgdi:waypoint>
+        <omgdi:waypoint x="390.0" y="235.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

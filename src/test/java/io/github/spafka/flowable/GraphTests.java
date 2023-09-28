@@ -226,4 +226,18 @@ public class GraphTests {
     }
 
 
+    @Test
+    public void testPgNoJoin(){
+
+        String xml=
+                "src/main/resources/returntest/1开3并行流3end.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+        var r = Graphs.backTrack(bpmnModel, null, null);
+
+        System.out.printf("");
+
+
+    }
+
+
 }

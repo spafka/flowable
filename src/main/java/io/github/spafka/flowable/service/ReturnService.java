@@ -1,6 +1,7 @@
 package io.github.spafka.flowable.service;
 
 
+import io.github.spafka.tuple.Tuple2;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.task.api.Task;
 
@@ -21,7 +22,7 @@ public interface ReturnService {
      * @param processInstanceId
      * @return
      */
-    List<FlowNodeDto> getCanRejectedFlowNode(BpmnModel bpmnModel, String instanceId, String processInstanceId);
+    Tuple2<List<FlowNodeDto>, Boolean> getCanRejectedFlowNode(BpmnModel bpmnModel, String instanceId, String processInstanceId);
 
     /**
      * 任务跳转至target

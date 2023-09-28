@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="Examples">
+  <process id="groovyScriptExample" name="GroovyScriptTaskExample" isExecutable="true">
+    <startEvent id="startEvent" flowable:formFieldValidation="false" />
+    <scriptTask id="groovyScriptTask" name="Groovy Script Task" scriptFormat="groovy" flowable:autoStoreVariables="false">
+      <script>print("van")</script>
+    </scriptTask>
+    <endEvent id="endEvent" />
+    <userTask id="sid-41E633B8-42C2-4CD8-8DEE-249475CC1C76" flowable:formFieldValidation="true" flowable:assignee="${INITIATOR}" flowable:userType="initiator">
+      <extensionElements>
+        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler">true</modeler:activiti-idm-initiator>
+      </extensionElements>
+      <outgoing>Flow_19rz304</outgoing>
+    </userTask>
+    <sequenceFlow id="sid-6D2871C6-E31C-4D6B-9CCB-D416AAABD5DB" sourceRef="startEvent" targetRef="sid-41E633B8-42C2-4CD8-8DEE-249475CC1C76" />
+    <sequenceFlow id="sid-F4B901FC-ACD9-41A3-B5D9-240A3BDC37A9" sourceRef="sid-41E633B8-42C2-4CD8-8DEE-249475CC1C76" targetRef="groovyScriptTask" flowable:skipExpression="{approval}" />
+    <sequenceFlow id="flow2" sourceRef="groovyScriptTask" targetRef="endEvent" />
+    <endEvent id="Event_0k6imrl">
+      <incoming>Flow_19rz304</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_19rz304" sourceRef="sid-41E633B8-42C2-4CD8-8DEE-249475CC1C76" targetRef="Event_0k6imrl" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_groovyScriptExample">
+    <bpmndi:BPMNPlane id="BPMNPlane_groovyScriptExample" bpmnElement="groovyScriptExample">
+      <bpmndi:BPMNEdge id="BPMNEdge_flow2" bpmnElement="flow2">
+        <omgdi:waypoint x="519.94997496605" y="89.99999910593033" />
+        <omgdi:waypoint x="694.9999903887513" y="89.99999910593033" />
+        <omgdi:waypoint x="694.9999903887513" y="73.99999910593034" />
+        <omgdi:waypoint x="869.99998703599" y="73.99999910593034" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sid-F4B901FC-ACD9-41A3-B5D9-240A3BDC37A9" bpmnElement="sid-F4B901FC-ACD9-41A3-B5D9-240A3BDC37A9">
+        <omgdi:waypoint x="234.94999586029087" y="89.99999851856573" />
+        <omgdi:waypoint x="419.99997021893694" y="89.99999910277329" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sid-6D2871C6-E31C-4D6B-9CCB-D416AAABD5DB" bpmnElement="sid-6D2871C6-E31C-4D6B-9CCB-D416AAABD5DB">
+        <omgdi:waypoint x="44.94999076516293" y="74.99999910593034" />
+        <omgdi:waypoint x="74.99999910593034" y="74.99999910593034" />
+        <omgdi:waypoint x="74.99999910593034" y="89.9999983608723" />
+        <omgdi:waypoint x="134.99999798834327" y="89.9999983608723" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19rz304_di" bpmnElement="Flow_19rz304">
+        <omgdi:waypoint x="185" y="130" />
+        <omgdi:waypoint x="185" y="350" />
+        <omgdi:waypoint x="422" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_startEvent" bpmnElement="startEvent">
+        <omgdc:Bounds x="14.999999776482586" y="59.99999910593034" width="29.999999999999996" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_groovyScriptTask" bpmnElement="groovyScriptTask">
+        <omgdc:Bounds x="419.99997496605005" y="59.99999910593034" width="99.99999999999994" height="59.99999999999996" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_endEvent" bpmnElement="endEvent">
+        <omgdc:Bounds x="869.99998703599" y="59.99999910593034" width="28" height="28" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_sid-41E633B8-42C2-4CD8-8DEE-249475CC1C76" bpmnElement="sid-41E633B8-42C2-4CD8-8DEE-249475CC1C76">
+        <omgdc:Bounds x="134.99999798834327" y="49.999998360872304" width="99.99999999999997" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0k6imrl_di" bpmnElement="Event_0k6imrl">
+        <omgdc:Bounds x="422" y="332" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

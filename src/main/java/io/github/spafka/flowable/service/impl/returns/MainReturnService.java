@@ -1,14 +1,17 @@
 package io.github.spafka.flowable.service.impl.returns;
 
+import io.github.spafka.flowable.core.FlowableUtils;
 import io.github.spafka.flowable.service.JumpTypeEnum;
 import io.github.spafka.flowable.core.TopologyNode;
 import io.github.spafka.flowable.service.FlowNodeDto;
 import io.github.spafka.flowable.service.Graphs;
 import io.github.spafka.flowable.service.ReturnService;
+import io.github.spafka.tuple.Tuple2;
 import io.github.spafka.util.JoinUtils;
 import io.vavr.collection.Stream;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
+import org.flowable.bpmn.converter.BpmnXMLConverter;
 import org.flowable.bpmn.model.*;
 
 import org.flowable.common.engine.impl.cfg.IdGenerator;
@@ -27,6 +30,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -52,44 +56,56 @@ public class MainReturnService implements ReturnService {
     RepositoryService repositoryService;
 
     @Override
-    public List<FlowNodeDto> getCanRejectedFlowNode(BpmnModel bpmnModel, String instanceId, String processInstanceId) {
+    public Tuple2<List<FlowNodeDto>, Boolean> getCanRejectedFlowNode(BpmnModel bpmnModel, String instanceId, String processInstanceId) {
         Task task = taskService.createTaskQuery().taskId(instanceId).singleResult();
         var tuple = Graphs.backTrack(bpmnModel, task.getTaskDefinitionKey(), null);
+        List<FlowNodeDto> backNodes = null;
 
-        LinkedList<TopologyNode<BaseElement>> one = tuple._2.get(0);
+        Map<String, TopologyNode<BaseElement>> indexMap = tuple._4;
+
+        if (tuple._2.size() == 1) {
+            LinkedList<TopologyNode<BaseElement>> topologyNodes = tuple._2.get(0);
+            topologyNodes.removeFirst();
+            backNodes = topologyNodes
+                    .stream()
+                    .filter(x -> x.node instanceof UserTask)
+                    .map(x -> new FlowNodeDto(x.node.getId(), ((UserTask) (x.node)).getName()))
+                    .collect(Collectors.toList());
+        } else {
+            LinkedList<TopologyNode<BaseElement>> one = tuple._2.get(0);
 
 
-        one.removeFirst();
-        TopologyNode<BaseElement> last = one.getFirst();
+            one.removeFirst();
+            TopologyNode<BaseElement> last = one.getFirst();
 
-        Deque<TopologyNode<BaseElement>> deque = new LinkedList<>();
-        Set<TopologyNode<BaseElement>> processed = new LinkedHashSet<>();
+            Deque<TopologyNode<BaseElement>> deque = new LinkedList<>();
+            Set<TopologyNode<BaseElement>> processed = new LinkedHashSet<>();
 
 
-        deque.add(last);
-        processed.add(last);
-        while (!deque.isEmpty()) {
-            TopologyNode<BaseElement> poll = deque.pollFirst();
-            TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> pre = poll.pre;
-            pre.forEach(x -> {
-                boolean contains = processed.contains(x);
-                if (!contains) {
-                    processed.add(x);
-                    deque.addLast(x);
-                }
-            });
+            deque.add(last);
+            processed.add(last);
+            while (!deque.isEmpty()) {
+                TopologyNode<BaseElement> poll = deque.pollFirst();
+                TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> pre = poll.pre;
+                pre.forEach(x -> {
+                    boolean contains = processed.contains(x);
+                    if (!contains) {
+                        processed.add(x);
+                        deque.addLast(x);
+                    }
+                });
+            }
+            backNodes = processed
+                    .stream()
+                    .filter(x -> x.node instanceof UserTask)
+                    .map(x -> new FlowNodeDto(x.node.getId(), ((UserTask) (x.node)).getName()))
+                    .collect(Collectors.toList());
         }
-
-        List<FlowNodeDto> backNodes = processed
-                .stream()
-                .filter(x -> x.node instanceof UserTask)
-                .map(x -> new FlowNodeDto(x.node.getId(), ((UserTask) (x.node)).getName()))
-                .collect(Collectors.toList());
 
 
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list().stream().filter(x -> x.getEndTime() != null).collect(Collectors.toList());
 
-        list = list.stream().filter(new Predicate<>() {
+        list = list.stream().filter(new Predicate<HistoricTaskInstance>() {
 
             Set<String> s = new HashSet<>();
 
@@ -99,12 +115,17 @@ public class MainReturnService implements ReturnService {
             }
         }).collect(Collectors.toList());
 
-        return JoinUtils.sortInnerJoin(backNodes,
-                list,
-                Comparator.comparing(FlowNodeDto::getId),
-                Comparator.comparing(TaskInfo::getTaskDefinitionKey)
-                , (a, b) -> a.getId().compareTo(b.getTaskDefinitionKey()),
-                (a, b) -> a).stream().filter(x -> !x.getId().equals(task.getTaskDefinitionKey())).collect(Collectors.toList());
+        List<FlowNodeDto> collect = JoinUtils.sortInnerJoin(backNodes,
+                        list,
+                        Comparator.comparing(FlowNodeDto::getId),
+                        Comparator.comparing(TaskInfo::getTaskDefinitionKey)
+                        , (a, b) -> a.getId().compareTo(b.getTaskDefinitionKey()),
+                        (a, b) -> a)
+                .stream().filter(x -> !x.getId().equals(task.getTaskDefinitionKey())).collect(Collectors.toList());
+
+        boolean ok = FlowableUtils.iteratorCheckSequentialReferTarget((FlowElement) indexMap.get(task.getTaskDefinitionKey()).node, collect.get(collect.size() - 1).getId(), null, null);
+
+        return Tuple2.of(collect,ok);
     }
 
     @Override
@@ -118,8 +139,11 @@ public class MainReturnService implements ReturnService {
         String processDefinitionId = list.get(0).getProcessDefinitionId();
 
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(processDefinitionId).singleResult();
+        // 获取所有节点信息，暂不考虑子流程情况
+        byte[] bytesS = jdbcTemplate.queryForObject("SELECT BYTES_ FROM ACT_GE_BYTEARRAY WHERE NAME_ = ? and DEPLOYMENT_ID_=? ", new Object[]{processDefinition.getResourceName(), processDefinition.getDeploymentId()}, (resultSet, i) -> resultSet.getBytes("BYTES_"));
+        repositoryService.getBpmnModel(processDefinition.getId());
 
-        BpmnModel model = repositoryService.getBpmnModel(processDefinition.getId());
+        BpmnModel model = new BpmnXMLConverter().convertToBpmnModel(() -> new ByteArrayInputStream(bytesS), false, false);
 
 
         List<Execution> executions = runtimeService.createExecutionQuery().processInstanceId(processInstanceId).list().stream().filter(x -> x.getActivityId() != null).collect(Collectors.toList());
@@ -145,15 +169,15 @@ public class MainReturnService implements ReturnService {
                 List<TopologyNode<BaseElement>> betweenNodes = tuple._2.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
 
                 List<HistoricTaskInstance> toDeleteHistory = JoinUtils.sortInnerJoin(javaList, betweenNodes, Comparator.comparing(TaskInfo::getTaskDefinitionKey), Comparator.comparing(x -> x.node.getId()), (a, b) -> a.getTaskDefinitionKey().compareTo(b.node.getId()), (a, b) -> a);
-                log.info("{} => {} , to delete task his {}", task.getTaskDefinitionKey(), targetId, toDeleteHistory.stream().map(x -> x.getTaskDefinitionKey()).collect(Collectors.toList()));
+                log.info("{} => {} , to delete task his {}", task.getTaskDefinitionKey(), targetId, toDeleteHistory.stream().map(TaskInfo::getTaskDefinitionKey).collect(Collectors.toList()));
 
                 toDeleteHistory.forEach(x -> historyService.deleteHistoricTaskInstance(x.getId()));
             } else {
                 List<HistoricTaskInstance> taskInstances = historyService.createHistoricTaskInstanceQuery()
                         .processInstanceId(processInstanceId).orderByHistoricTaskInstanceStartTime().asc().list();
 
-                var more = indexMap.get(currentId).gateways.stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
-                var less = indexMap.get(targetId).gateways.stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
+                var more = indexMap.get(currentId).gateways.stream().flatMap(x -> x.join.stream()).filter(Objects::nonNull).collect(Collectors.toList());
+                var less = indexMap.get(targetId).gateways.stream().flatMap(x -> x.join.stream()).filter(Objects::nonNull).collect(Collectors.toList());
 
                 List<TopologyNode<BaseElement>> endGates = JoinUtils.leftOnly(more, less, (a, b) -> a == b);
 
@@ -216,7 +240,7 @@ public class MainReturnService implements ReturnService {
 
             TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> parentGates = indexMap.get(targetId).gateways;
             TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> currentGates = indexMap.get(currentId).gateways;
-            List<TopologyNode> endGates = JoinUtils.leftOnly(new ArrayList<>(currentGates), new ArrayList<>(parentGates), (a, b) -> a.node.getId().equals(b.node.getId())).stream().map(x -> x.join).filter(Objects::nonNull).collect(Collectors.toList());
+            List<TopologyNode> endGates = JoinUtils.leftOnly(new ArrayList<>(currentGates), new ArrayList<>(parentGates), (a, b) -> a.node.getId().equals(b.node.getId())).stream().flatMap(x -> x.join.stream()).filter(Objects::nonNull).collect(Collectors.toList());
 
 
             LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();

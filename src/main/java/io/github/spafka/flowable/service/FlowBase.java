@@ -15,6 +15,7 @@ import org.flowable.task.api.Task;
 import org.flowable.task.api.TaskInfo;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -27,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+@SpringBootTest
 public class FlowBase {
 
     static int i = 0;
@@ -124,7 +125,6 @@ public class FlowBase {
         list.stream().filter(x -> x.getName().equals(taskName))
                 .findFirst().ifPresentOrElse(x -> {
                     taskService.complete(x.getId(), taskService.getVariables(x.getId()));
-
                 }, () -> {
                     throw new RuntimeException("待办任务不存在 " + taskName);
                 });
@@ -140,16 +140,15 @@ public class FlowBase {
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
         List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
 
-        List<FlowNodeDto> flowNodeDtos = JoinUtils.sortJoin(backNodes,
+        return JoinUtils.sortJoin(backNodes,
                 list,
                 FlowNodeDto::getId,
                 TaskInfo::getTaskDefinitionKey,
                 (a, b) -> a);
-        return flowNodeDtos;
     }
 
     public void return2Node(String from, String to) {
-        Task task = null;
+        Task task;
         List<Task> all = taskService.createTaskQuery()
                 .list();
         task = all.stream().filter(x -> x.getName().equals(from)).findFirst().get();

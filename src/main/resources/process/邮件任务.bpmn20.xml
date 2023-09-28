@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="emailtaskprocess" name="邮件任务" isExecutable="true">
+    <documentation>邮件任务</documentation>
+    <startEvent id="startEvent1"></startEvent>
+    <serviceTask id="mail" name="邮件任务" flowable:type="mail">
+      <extensionElements>
+        <flowable:field name="to">
+          <flowable:expression><![CDATA[${recipient}]]></flowable:expression>
+        </flowable:field>
+        <flowable:field name="subject">
+          <flowable:expression><![CDATA[${subject}]]></flowable:expression>
+        </flowable:field>
+        <flowable:field name="html">
+          <flowable:expression><![CDATA[<html><body>Hello ${gender == 'male' ? 'Mr' : 'Ms' }. <b>JamesYee</b><body></html>]]></flowable:expression>
+        </flowable:field>
+        <flowable:field name="charset">
+          <flowable:string><![CDATA[UTF-8]]></flowable:string>
+        </flowable:field>
+      </extensionElements>
+    </serviceTask>
+    <endEvent id="sid-BC060ADE-452C-4B6E-8595-7E4A821AE0FC"></endEvent>
+    <sequenceFlow id="sid-7723640C-4FC8-4D80-AAC5-02BC9525BEFB" sourceRef="mail" targetRef="sid-BC060ADE-452C-4B6E-8595-7E4A821AE0FC"></sequenceFlow>
+    <sequenceFlow id="sid-060D5251-B0AE-40BE-A5E8-E6E9A7C00610" sourceRef="startEvent1" targetRef="mail"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_emailtaskprocess">
+    <bpmndi:BPMNPlane bpmnElement="emailtaskprocess" id="BPMNPlane_emailtaskprocess">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="165.0" y="235.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mail" id="BPMNShape_mail">
+        <omgdc:Bounds height="80.0" width="100.0" x="360.0" y="210.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-BC060ADE-452C-4B6E-8595-7E4A821AE0FC" id="BPMNShape_sid-BC060ADE-452C-4B6E-8595-7E4A821AE0FC">
+        <omgdc:Bounds height="28.0" width="28.0" x="630.0" y="236.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-7723640C-4FC8-4D80-AAC5-02BC9525BEFB" id="BPMNEdge_sid-7723640C-4FC8-4D80-AAC5-02BC9525BEFB">
+        <omgdi:waypoint x="459.94999999992734" y="250.0"></omgdi:waypoint>
+        <omgdi:waypoint x="630.0" y="250.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-060D5251-B0AE-40BE-A5E8-E6E9A7C00610" id="BPMNEdge_sid-060D5251-B0AE-40BE-A5E8-E6E9A7C00610">
+        <omgdi:waypoint x="194.94999965443563" y="250.0"></omgdi:waypoint>
+        <omgdi:waypoint x="360.0" y="250.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

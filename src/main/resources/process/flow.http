@@ -1,0 +1,171 @@
+###
+POST http://localhost:8080/inter-api/flow-service/v1/process
+Pragma: no-cache
+x-tenant-id: dt
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJkZXBhcnRtZW50X2NvZGUiOiJkZWZhdWx0X2RlcGFydG1lbnQiLCJzdGFmZl9uYW1lIjoi6Jma5ouf5Lq65ZGYIiwic3ViIjoiQWlmUm14d29ZM1cwbVQxcWowUDNHIiwiY29tcGFueV9pZCI6MTAwMCwiZGVwYXJ0bWVudF9pZCI6MSwidXNlcl9uYW1lIjoiYWRtaW4iLCJwb3NpdGlvbl9jb2RlIjoiZGVmYXVsdF9wb3NpdGlvbiIsImRlcGFydG1lbnRfbmFtZSI6IuiZmuaLn-mDqOmXqCIsInBvc2l0aW9uX25hbWUiOiLomZrmi5_lspfkvY0iLCJzdGFmZl9jb2RlIjoiZGVmYXVsdF9wZXJzb24iLCJ1c2VyX3R5cGUiOjEsInVzZXJfaWQiOjEsImF6cCI6InBjIiwiY29tcGFueV9uYW1lIjoi6buY6K6k5YWs5Y-4Iiwic3RhZmZfaWQiOjEsImNvbXBhbnlfY29kZSI6ImRlZmF1bHRfb3JnX2NvbXBhbnkiLCJwb3NpdGlvbl9jb21wYW55X2lkIjoxMDAwLCJleHAiOjE3MjM1Mzk4MTgsImlhdCI6MTY5MjAwMzgxOCwicG9zaXRpb25faWQiOjF9.IMhmR0WkdUR4HLhp9__OcM6QWySKRq1f9GjFjGRohxBSP-8ToVnxXb8nPA6xMKUMn9BaUwWnzflxaBBXIr2aMmKa47xL_XIZ3hb8Xwxmv1o-mvQWqVc1c9EiSZs-3AZmFsRfSLq4wNkqcid8i4il_5hPCJrYIid_T7cd9_KEIEeD6eTBlpX3dA982ApDAsZjGzq29NcPC-JB-f0qgMCUzWN_tbWVo-srprBLQtoFAsafe9tg2SlpP2ZUTcm1WvPVXnCNRCg1UdQVpFFR43uxcfAeh__1cKLvSwdhclVqtd1TLqx0unh0xBYJDb1VqWnMkMzrck6dDB_d04qlzC7Z1w
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: application/json, text/plain, */*
+X-Supos-Version: 4.02.01.14-C-M2
+Cache-Control: no-cache, no-store
+X-Supos-Client: c3VwT1MkJDE2OTU3OTQzMjY5MjQkJEpqY09YaUxZYXJuZGhOUEY=
+Referer: http://10.30.44.50:8080/project/flow/
+Content-Type: application/json
+
+{"formData":"{\"time\":\"2\",\"ctrlIndex\":\"htDiv-li055cju0-194\",\"ctrlType\":\"0\"}","assigns":[{"name":"审批","taskDefKey":"UserTask_1685068177707","users":[3777361982704256]}],"notifyParty":[],"audit":{"id":"edge_1685068177707","name":null,"order":1,"type":0,"value":"0"},"processKey":"K3639067323845793"}
+
+###
+
+
+
+###
+GET http://localhost:8080/inter-api/flow-service/v1/process/startInfo?appId=App_27e4a6506f86d4e6a314c3f269ced99b&processKey=K3757733342595906
+Accept: application/json, text/plain, */*
+X-Tenant-Id: dt
+Accept-Language: zh-cn
+Authorization: Bearer vmxeb3WbUoqT2I0ritDnM
+Cache-Control: no-cache, no-store
+Connection: keep-alive
+Cookie: language=zh_CN; redirect_to=%2F; JSESSIONID=F88E183D9FCF26B00D14C5AD7B1725CC; suposTicket=vmxeb3WbUoqT2I0ritDnM; suposTicketForFrontend=vmxeb3WbUoqT2I0ritDnM
+Pragma: no-cache
+Referer: http://10.30.44.50:8080/project/flow/
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+X-Supos-Client: c3VwT1MkJDE2OTUwMTYyOTI4NjckJGVHQnluYWttT0hMbWZwYVk=
+X-Supos-Version: 4.02.01.14-C-M2
+Content-Type: application/json
+
+###
+
+### 获取代办详情或详情
+GET http://localhost:8080/inter-api/flow-service/v1/task/displayInfo?taskId={{taskId}}
+Accept: application/json, text/plain, */*
+Accept-Language: zh-cn
+X-tenant-id: dt
+Authorization: {{TOKEN}}
+Cache-Control: no-cache, no-store
+Connection: keep-alive
+Cookie: language=zh_CN; suposTicket=5rPo6e3DB5F6CCIVA5IT1
+Pragma: no-cache
+Referer: http://localhsot:8080/project/flow/
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+X-Supos-Client: c3VwT1MkJDE2OTQwNTQ5MTEwMjYkJEdPUU1qeEdKU05vZ2RPYUw=
+X-Supos-Version: 4.02.01.14-C
+Content-Type: application/json
+
+###
+
+### 1234
+POST http://localhsot:8080/inter-api/flow-service/v2/overdue/save
+Accept: application/json, text/plain, */*
+Accept-Language: zh-cn
+Authorization: Bearer 5rPo6e3DB5F6CCIVA5IT1
+Cache-Control: no-cache, no-store
+Connection: keep-alive
+Cookie: language=zh_CN; suposTicket=5rPo6e3DB5F6CCIVA5IT1; suposTicketForFrontend=5rPo6e3DB5F6CCIVA5IT1
+Origin: http://localhsot:8080
+Pragma: no-cache
+Referer: http://localhsot:8080/flow/
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+X-Supos-Client: c3VwT1MkJDE2OTM2MzIxMDExMzQkJEhtbnBWbkhMSlNrS1BFU3A=
+X-Supos-Version: 4.02.01.14-C
+Content-Type: application/json
+
+{"processId":"3695230183197073","enable":true,"strategies":[{"name":"一天内完成","overdueTime":111,"overdueTimeunit":"DAYS","repeatAble":true,"repeatTime":1,"repeatTimeunit":"MINUTES"},{"name":"一周内完成","overdueTime":1,"overdueTimeunit":"DAYS","repeatAble":false,"repeatTime":1,"repeatTimeunit":"DAYS"}],"protocol":[{"name":"邮件","noticeProtocol":"email","checked":true}],"persons":[{"type":"staff","name":"person008124","strategyName":"一周内完成","value":3703538382096992},{"type":"department","name":"默认部门","strategyName":"一天内完成","value":2}]}
+
+###
+
+### 保存超期配置
+POST http://localhsot:8080/inter-api/flow-service/v2/overdue/save
+Accept: application/json, text/plain, */*
+Accept-Language: zh-cn
+Authorization: Bearer 5rPo6e3DB5F6CCIVA5IT1
+Cache-Control: no-cache, no-store
+Connection: keep-alive
+Cookie: language=zh_CN; suposTicket=5rPo6e3DB5F6CCIVA5IT1; suposTicketForFrontend=5rPo6e3DB5F6CCIVA5IT1
+Origin: http://localhsot:8080
+Pragma: no-cache
+Referer: http://localhsot:8080/flow/
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+X-Supos-Client: c3VwT1MkJDE2OTM2MzE4MDMwNDEkJHFLWmtHYmN1YmhEUmNpS0g=
+X-Supos-Version: 4.02.01.14-C
+Content-Type: application/json
+
+{"processId":"3695230183197073","enable":true,"strategies":[{"name":"一天内完成","overdueTime":111,"overdueTimeunit":"DAYS","repeatAble":true,"repeatTime":1,"repeatTimeunit":"MINUTES"},{"name":"一周内完成","overdueTime":1,"overdueTimeunit":"DAYS","repeatAble":false,"repeatTime":1,"repeatTimeunit":"DAYS"}],"protocol":[{"name":"邮件","noticeProtocol":"email","checked":true}],"persons":[{"type":"staff","name":"person008124","strategyName":"一周内完成","value":3703538382096992},{"type":"department","name":"默认部门","strategyName":"一天内完成","value":2}]}
+
+###
+
+### submit
+POST http://localhost:8080/inter-api/flow-service/v1/process
+Pragma: no-cache
+Accept-Language: zh-cn
+x-tenant-id: dt
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJkZXBhcnRtZW50X2NvZGUiOiJkZWZhdWx0X2RlcGFydG1lbnQiLCJzdGFmZl9uYW1lIjoi6Jma5ouf5Lq65ZGYIiwic3ViIjoiQWlmUm14d29ZM1cwbVQxcWowUDNHIiwiY29tcGFueV9pZCI6MTAwMCwiZGVwYXJ0bWVudF9pZCI6MSwidXNlcl9uYW1lIjoiYWRtaW4iLCJwb3NpdGlvbl9jb2RlIjoiZGVmYXVsdF9wb3NpdGlvbiIsImRlcGFydG1lbnRfbmFtZSI6IuiZmuaLn-mDqOmXqCIsInBvc2l0aW9uX25hbWUiOiLomZrmi5_lspfkvY0iLCJzdGFmZl9jb2RlIjoiZGVmYXVsdF9wZXJzb24iLCJ1c2VyX3R5cGUiOjEsInVzZXJfaWQiOjEsImF6cCI6InBjIiwiY29tcGFueV9uYW1lIjoi6buY6K6k5YWs5Y-4Iiwic3RhZmZfaWQiOjEsImNvbXBhbnlfY29kZSI6ImRlZmF1bHRfb3JnX2NvbXBhbnkiLCJwb3NpdGlvbl9jb21wYW55X2lkIjoxMDAwLCJleHAiOjE3MjM1Mzk4MTgsImlhdCI6MTY5MjAwMzgxOCwicG9zaXRpb25faWQiOjF9.IMhmR0WkdUR4HLhp9__OcM6QWySKRq1f9GjFjGRohxBSP-8ToVnxXb8nPA6xMKUMn9BaUwWnzflxaBBXIr2aMmKa47xL_XIZ3hb8Xwxmv1o-mvQWqVc1c9EiSZs-3AZmFsRfSLq4wNkqcid8i4il_5hPCJrYIid_T7cd9_KEIEeD6eTBlpX3dA982ApDAsZjGzq29NcPC-JB-f0qgMCUzWN_tbWVo-srprBLQtoFAsafe9tg2SlpP2ZUTcm1WvPVXnCNRCg1UdQVpFFR43uxcfAeh__1cKLvSwdhclVqtd1TLqx0unh0xBYJDb1VqWnMkMzrck6dDB_d04qlzC7Z1w
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: application/json, text/plain, */*
+X-Supos-Version: 4.02.02.00-C
+Cache-Control: no-cache, no-store
+Content-Type: application/json
+
+
+{"formData":"{\"htDiv-ll5wtv2l0-4587\":[\"whf\",\"admin\",\"sds\"],\"ctrlIndex\":\"htDiv-ll5wtv2l0-4587\",\"ctrlType\":\"0\",\"htDiv-ll5wtv2l0-70\":\"1\",\"time\":\"5\"}","assigns":[],"memo":"","notifyParty":[],"processKey":"K3694786365541841"}
+
+
+### 普通工作流驳回
+POST http://localhost:8080/inter-api/flow-service/v1/task/pending
+Pragma: no-cache
+Accept-Language: zh-cn
+X-Tenant-Id: dt
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJkZXBhcnRtZW50X2NvZGUiOiJkZWZhdWx0X2RlcGFydG1lbnQiLCJzdGFmZl9uYW1lIjoi6Jma5ouf5Lq65ZGYIiwic3ViIjoiQWlmUm14d29ZM1cwbVQxcWowUDNHIiwiY29tcGFueV9pZCI6MTAwMCwiZGVwYXJ0bWVudF9pZCI6MSwidXNlcl9uYW1lIjoiYWRtaW4iLCJwb3NpdGlvbl9jb2RlIjoiZGVmYXVsdF9wb3NpdGlvbiIsImRlcGFydG1lbnRfbmFtZSI6IuiZmuaLn-mDqOmXqCIsInBvc2l0aW9uX25hbWUiOiLomZrmi5_lspfkvY0iLCJzdGFmZl9jb2RlIjoiZGVmYXVsdF9wZXJzb24iLCJ1c2VyX3R5cGUiOjEsInVzZXJfaWQiOjEsImF6cCI6InBjIiwiY29tcGFueV9uYW1lIjoi6buY6K6k5YWs5Y-4Iiwic3RhZmZfaWQiOjEsImNvbXBhbnlfY29kZSI6ImRlZmF1bHRfb3JnX2NvbXBhbnkiLCJwb3NpdGlvbl9jb21wYW55X2lkIjoxMDAwLCJleHAiOjE3MjM1Mzk4MTgsImlhdCI6MTY5MjAwMzgxOCwicG9zaXRpb25faWQiOjF9.IMhmR0WkdUR4HLhp9__OcM6QWySKRq1f9GjFjGRohxBSP-8ToVnxXb8nPA6xMKUMn9BaUwWnzflxaBBXIr2aMmKa47xL_XIZ3hb8Xwxmv1o-mvQWqVc1c9EiSZs-3AZmFsRfSLq4wNkqcid8i4il_5hPCJrYIid_T7cd9_KEIEeD6eTBlpX3dA982ApDAsZjGzq29NcPC-JB-f0qgMCUzWN_tbWVo-srprBLQtoFAsafe9tg2SlpP2ZUTcm1WvPVXnCNRCg1UdQVpFFR43uxcfAeh__1cKLvSwdhclVqtd1TLqx0unh0xBYJDb1VqWnMkMzrck6dDB_d04qlzC7Z1w
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: application/json, text/plain, */*
+X-Supos-Version: 4.02.01.14-C
+Content-Type: application/json
+
+{"formData":"{\"time\":\"2\",\"ctrlIndex\":\"htDiv-li055cju0-194\",\"ctrlType\":\"0\"}","assigns":[],"memo":"","notifyParty":[],"taskId":"3695448430430608","targetNode":"UserTask_1684838279268"}
+
+### 谭章驳回至黄建波
+POST http://localhost:8080/inter-api/flow-service/v1/task/pending
+Pragma: no-cache
+X-Tenant-Id: dt
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJkZXBhcnRtZW50X2NvZGUiOiJkZWZhdWx0X2RlcGFydG1lbnQiLCJzdGFmZl9uYW1lIjoi6Jma5ouf5Lq65ZGYIiwic3ViIjoiQWlmUm14d29ZM1cwbVQxcWowUDNHIiwiY29tcGFueV9pZCI6MTAwMCwiZGVwYXJ0bWVudF9pZCI6MSwidXNlcl9uYW1lIjoiYWRtaW4iLCJwb3NpdGlvbl9jb2RlIjoiZGVmYXVsdF9wb3NpdGlvbiIsImRlcGFydG1lbnRfbmFtZSI6IuiZmuaLn-mDqOmXqCIsInBvc2l0aW9uX25hbWUiOiLomZrmi5_lspfkvY0iLCJzdGFmZl9jb2RlIjoiZGVmYXVsdF9wZXJzb24iLCJ1c2VyX3R5cGUiOjEsInVzZXJfaWQiOjEsImF6cCI6InBjIiwiY29tcGFueV9uYW1lIjoi6buY6K6k5YWs5Y-4Iiwic3RhZmZfaWQiOjEsImNvbXBhbnlfY29kZSI6ImRlZmF1bHRfb3JnX2NvbXBhbnkiLCJwb3NpdGlvbl9jb21wYW55X2lkIjoxMDAwLCJleHAiOjE3MjM1Mzk4MTgsImlhdCI6MTY5MjAwMzgxOCwicG9zaXRpb25faWQiOjF9.IMhmR0WkdUR4HLhp9__OcM6QWySKRq1f9GjFjGRohxBSP-8ToVnxXb8nPA6xMKUMn9BaUwWnzflxaBBXIr2aMmKa47xL_XIZ3hb8Xwxmv1o-mvQWqVc1c9EiSZs-3AZmFsRfSLq4wNkqcid8i4il_5hPCJrYIid_T7cd9_KEIEeD6eTBlpX3dA982ApDAsZjGzq29NcPC-JB-f0qgMCUzWN_tbWVo-srprBLQtoFAsafe9tg2SlpP2ZUTcm1WvPVXnCNRCg1UdQVpFFR43uxcfAeh__1cKLvSwdhclVqtd1TLqx0unh0xBYJDb1VqWnMkMzrck6dDB_d04qlzC7Z1w
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: application/json, text/plain, */*
+X-Supos-Version: 4.02.01.14-C
+Cache-Control: no-cache, no-store
+X-Supos-Client: c3VwT1MkJDE2OTMyOTU5NjM5MzEkJGtPakZFYmZmU0xVZk5McUM=
+Referer: http://localhsot:8080/project/flow/
+Content-Type: application/json
+
+{"formData":"{\"time\":\"5\",\"ctrlIndex\":\"htDiv-li055cju0-194\",\"ctrlType\":\"0\"}","assigns":[],"memo":"","notifyParty":[],"taskId":"{{taskId}}","targetNode": "UserTask_1693271307830"}
+### 查询代办详情
+GET http://localhost:8080/inter-api/flow-service/v1/task/pending?taskId={{taskId}}
+Accept: application/json, text/plain, */*
+X-Tenant-Id: dt
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJkZXBhcnRtZW50X2NvZGUiOiJkZWZhdWx0X2RlcGFydG1lbnQiLCJzdGFmZl9uYW1lIjoi6Jma5ouf5Lq65ZGYIiwic3ViIjoiQWlmUm14d29ZM1cwbVQxcWowUDNHIiwiY29tcGFueV9pZCI6MTAwMCwiZGVwYXJ0bWVudF9pZCI6MSwidXNlcl9uYW1lIjoiYWRtaW4iLCJwb3NpdGlvbl9jb2RlIjoiZGVmYXVsdF9wb3NpdGlvbiIsImRlcGFydG1lbnRfbmFtZSI6IuiZmuaLn-mDqOmXqCIsInBvc2l0aW9uX25hbWUiOiLomZrmi5_lspfkvY0iLCJzdGFmZl9jb2RlIjoiZGVmYXVsdF9wZXJzb24iLCJ1c2VyX3R5cGUiOjEsInVzZXJfaWQiOjEsImF6cCI6InBjIiwiY29tcGFueV9uYW1lIjoi6buY6K6k5YWs5Y-4Iiwic3RhZmZfaWQiOjEsImNvbXBhbnlfY29kZSI6ImRlZmF1bHRfb3JnX2NvbXBhbnkiLCJwb3NpdGlvbl9jb21wYW55X2lkIjoxMDAwLCJleHAiOjE3MjM1Mzk4MTgsImlhdCI6MTY5MjAwMzgxOCwicG9zaXRpb25faWQiOjF9.IMhmR0WkdUR4HLhp9__OcM6QWySKRq1f9GjFjGRohxBSP-8ToVnxXb8nPA6xMKUMn9BaUwWnzflxaBBXIr2aMmKa47xL_XIZ3hb8Xwxmv1o-mvQWqVc1c9EiSZs-3AZmFsRfSLq4wNkqcid8i4il_5hPCJrYIid_T7cd9_KEIEeD6eTBlpX3dA982ApDAsZjGzq29NcPC-JB-f0qgMCUzWN_tbWVo-srprBLQtoFAsafe9tg2SlpP2ZUTcm1WvPVXnCNRCg1UdQVpFFR43uxcfAeh__1cKLvSwdhclVqtd1TLqx0unh0xBYJDb1VqWnMkMzrck6dDB_d04qlzC7Z1w
+Accept-Language: zh-cn
+Cache-Control: no-cache, no-store
+Connection: keep-alive
+Cookie: language=zh_CN; suposTicket=j4C-8DhzUR6jTV9-U8IPq; suposTicketForFrontend=j4C-8DhzUR6jTV9-U8IPq
+Pragma: no-cache
+Referer: http://localhsot:8080/project/flow/
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+X-Supos-Client: c3VwT1MkJDE2OTMyNzM2NDk1ODAkJHdMR2doaUZSTVpZdktnZVI=
+Content-Type: application/json
+
+
+### submit
+POST http://localhost:8080/inter-api/flow-service/v1/process
+Pragma: no-cache
+Accept-Language: zh-cn
+x-tenant-id: dt
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJkZXBhcnRtZW50X2NvZGUiOiJkZWZhdWx0X2RlcGFydG1lbnQiLCJzdGFmZl9uYW1lIjoi6Jma5ouf5Lq65ZGYIiwic3ViIjoiQWlmUm14d29ZM1cwbVQxcWowUDNHIiwiY29tcGFueV9pZCI6MTAwMCwiZGVwYXJ0bWVudF9pZCI6MSwidXNlcl9uYW1lIjoiYWRtaW4iLCJwb3NpdGlvbl9jb2RlIjoiZGVmYXVsdF9wb3NpdGlvbiIsImRlcGFydG1lbnRfbmFtZSI6IuiZmuaLn-mDqOmXqCIsInBvc2l0aW9uX25hbWUiOiLomZrmi5_lspfkvY0iLCJzdGFmZl9jb2RlIjoiZGVmYXVsdF9wZXJzb24iLCJ1c2VyX3R5cGUiOjEsInVzZXJfaWQiOjEsImF6cCI6InBjIiwiY29tcGFueV9uYW1lIjoi6buY6K6k5YWs5Y-4Iiwic3RhZmZfaWQiOjEsImNvbXBhbnlfY29kZSI6ImRlZmF1bHRfb3JnX2NvbXBhbnkiLCJwb3NpdGlvbl9jb21wYW55X2lkIjoxMDAwLCJleHAiOjE3MjM1Mzk4MTgsImlhdCI6MTY5MjAwMzgxOCwicG9zaXRpb25faWQiOjF9.IMhmR0WkdUR4HLhp9__OcM6QWySKRq1f9GjFjGRohxBSP-8ToVnxXb8nPA6xMKUMn9BaUwWnzflxaBBXIr2aMmKa47xL_XIZ3hb8Xwxmv1o-mvQWqVc1c9EiSZs-3AZmFsRfSLq4wNkqcid8i4il_5hPCJrYIid_T7cd9_KEIEeD6eTBlpX3dA982ApDAsZjGzq29NcPC-JB-f0qgMCUzWN_tbWVo-srprBLQtoFAsafe9tg2SlpP2ZUTcm1WvPVXnCNRCg1UdQVpFFR43uxcfAeh__1cKLvSwdhclVqtd1TLqx0unh0xBYJDb1VqWnMkMzrck6dDB_d04qlzC7Z1w
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: application/json, text/plain, */*
+X-Supos-Version: 4.02.02.00-C
+Cache-Control: no-cache, no-store
+Content-Type: application/json
+
+
+{"formData":"{\"unit\":\"万\",\"ctrlIndex\":\"htDiv-lj2fhkl20-3613\",\"ctrlType\":\"0\",\"otherCtrl\":true,\"defaultRecord1\":\"请组织相关人员讨论并上传会议纪要、签到表、修订后的文件等信息\u0021\",\"defaultRecord2\":\"请组织相关人员讨论并上传会议纪要、签到表、修订后的文件等信息\u0021\",\"defaultRecord3\":\"请组织相关人员讨论并上传会议纪要、签到表、修订后的文件等信息\u0021\",\"defaultRecord4\":\"请组织相关人员讨论并上传会议纪要、签到表、修订后的文件等信息\u0021\",\"defaultRecord5\":\"请组织相关人员讨论并上传会议纪要、签到表、修订后的文件等信息\u0021\",\"defaultRecord6\":\"请组织相关人员讨论并上传会议纪要、签到表、修订后的文件等信息\u0021\",\"defaultRecord7\":\"请相关人员按类别上传相关文档\u0021\",\"manage2\":[\"是\"],\"approved1\":[\"XIAOLI\"],\"approved2\":[\"XIAOLI\"],\"approved3\":[\"XIAOLI\"],\"approved4\":[\"PSCAO\"],\"approved7\":[\"PSCAO\"],\"approved6\":[\"PSCAO\"],\"directLeaderCode\":[\"PSCAO\"],\"spon\":\"/#/link/DispatchMeeting_6.1.4.0_meeting_meetingStaffFilter\",\"firstUse\":\"是\",\"development\":\"是\",\"orderPerson\":\"贾玉童\",\"company\":\"万华化学\",\"orderDate\":\"2023-09-07\",\"projectNameOne\":\"ABCD003\",\"orderNo\":\"XM-230907009\",\"phone\":\"17854232515\",\"department\":\"固废处理\",\"projectNameTwo\":\"测试\",\"projectType\":\"污水处理\",\"money\":\"100\",\"processRoute\":\"测试一下\",\"threeConditions\":[{\"fileDownloadUrl\":\"/api/config/download?fileName=2023-09-07%2F1694066152415%2Fbuild.gradle\",\"fileName\":\"2023-09-07/1694066152415/build.gradle\"}],\"wdgl\":\"是\",\"sonOrderNo7\":\"XM-230907009-WDGL\",\"expert\":[\"YFXIA\",\"YMXI\",\"HJWEI\",\"XIANGKUN\",\"DJLI\",\"BQYE\",\"SCLIA\"],\"yt\":[\"YFXIA\",\"YMXI\"],\"pl\":[\"HJWEI\"],\"nb\":[\"XIANGKUN\"],\"fj\":[\"DJLI\",\"BQYE\"],\"sc\":[\"SCLIA\"]}","assigns":[],"comment":"","notifyParty":[],"audit":{"id":"edge_1688549126528","name":"子流程发布","order":1,"type":0,"value":"1"},"taskId":"3720837709528144"}
+
+
+###

@@ -44,7 +44,7 @@ public class Graphs {
         Map<String, Signal> sigMap = Maps.newLinkedHashMap();
 
         if (!CollectionUtils.isEmpty(signals)) {
-            signals.stream().forEach(x -> {
+            signals.forEach(x -> {
                 sigMap.put(x.getId(), x);
             });
         }
@@ -56,7 +56,7 @@ public class Graphs {
         Map<String, FlowElement> idMap = flowElements.stream().collect(Collectors.toMap(BaseElement::getId, x -> x));
 
         /**
-         * 起始节点,如果是事件子流程，起始节点只能是事件子流程的起始节点
+         * 起始节点
          */
         FlowElement start = flowElements.stream().filter(x -> x instanceof StartEvent && x.getParentContainer() instanceof Process).findFirst().get();
 
@@ -93,7 +93,7 @@ public class Graphs {
             }
         });
 
-        /**e
+        /**
          * 子流程和父流程连接起来
          */
         indexMap.forEach((k, v) -> {
@@ -236,14 +236,16 @@ public class Graphs {
 
             joinGateways.stream()
                     .filter(x -> {
-                        if (x.join != null) {
-                            TopologyNode<BaseElement> join = x.join;
-                            if (joinGateways.contains(join)) {
-                                innerGateway.add(x);
-                                innerGateway.add(x.join);
-                            }
-                        }
+                        if (x.join != null && !x.join.isEmpty()) {
 
+                            var joins = x.join;
+                            joins.stream().filter(y -> y.node instanceof ParallelGateway || y.node instanceof InclusiveGateway).forEach(join -> {
+                                if (joinGateways.contains(join)) {
+                                    innerGateway.add(x);
+                                    innerGateway.add(join);
+                                }
+                            });
+                        }
                         return false;
                     }).count();
             joinGateways.removeAll(innerGateway);
@@ -270,48 +272,52 @@ public class Graphs {
             Gateway parallelGateway = (Gateway) parallable.node;
             List<FlowElement> endEvents = parallelGateway.getParentContainer().getFlowElements().stream().filter(x -> x instanceof EndEvent).collect(Collectors.toList());
 
-            for (FlowElement endEvent : endEvents) {
-
-                if (parallelGateway.getOutgoingFlows().size() > 1) {
+            if (parallelGateway.getOutgoingFlows().size() > 1) {
+                for (FlowElement endEvent : endEvents) {
 
                     log.debug("判断 {} 网关", parallelGateway.getId());
-
                     List<LinkedList<TopologyNode<BaseElement>>> paths = new ArrayList<>();
                     findPathFromBehind(indexMap, parallable.node.getId(), endEvent.getId(), paths, new LinkedList<>(), Sets.newHashSet());
-                    List<TopologyNode<BaseElement>> pgs = paths.stream().flatMap(x -> x.stream().filter(y -> isParallelGateway(y))).distinct().collect(Collectors.toList());
+                    List<TopologyNode<BaseElement>> pgs = paths.stream().flatMap(x -> x.stream().filter(Graphs::isParallelGateway)).distinct().collect(Collectors.toList());
+                    if (pgs.isEmpty()) {
 
-                    for (TopologyNode<BaseElement> pg : pgs) {
-                        if (pg == parallable) {
-                            continue;
+                        parallable.join.add(indexMap.get(endEvent.getId()));
+
+                        paths.stream().flatMap(Collection::stream).filter(x -> x.node != parallelGateway)
+                                .forEach(x -> x.addFork(parallable));
+                    } else {
+                        for (TopologyNode<BaseElement> pg : pgs) {
+                            if (pg == parallable) {
+                                continue;
+                            }
+                            log.debug("判断 {} 是否是 {}'s join", pg.node.getId(), parallable.node.getId());
+                            paths = new ArrayList<>();
+                            findPathFromBehind(indexMap, parallable.node.getId(), pg.node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
+
+                            List<SequenceFlow> outgoingFlows = parallelGateway.getOutgoingFlows();
+                            Boolean ok = outgoingFlows.stream().map(x -> FlowableUtils
+                                            .isReachable(process,
+                                                    x.getId(), pg.node.getId()))
+                                    .reduce(true, (a, b) -> a && b);
+
+                            if (ok && FlowableUtils.iteratorCheckSequentialReferTarget((FlowElement) pg.node, parallable.node.getId(), null, null)) {
+                                log.debug("判断 {} 是 {}'s join", pg.node.getId(), parallable.node.getId());
+
+                                paths.forEach(x -> x.stream()
+                                        .filter(y -> y != parallable)
+                                        .filter(Graphs::isParallelGateway)
+                                        .forEach(y -> {
+                                            y.addFork(parallable);
+                                        }));
+                                paths.forEach(x -> x.stream().filter(y -> !isParallelGateway(y))
+                                        .forEach(y -> y.addGate(parallable)));
+                                parallable.join.add(pg);
+                            }
                         }
-                        log.debug("判断 {} 是否是 {}'s join", pg.node.getId(), parallable.node.getId());
-                        paths = new ArrayList<>();
-                        findPathFromBehind(indexMap, parallable.node.getId(), pg.node.getId(), paths, new LinkedList<>(), Sets.newHashSet());
 
-                        List<SequenceFlow> outgoingFlows = parallelGateway.getOutgoingFlows();
-                        Boolean reduce = outgoingFlows.stream().map(x -> FlowableUtils.isReachable(process, x.getId(), pg.node.getId())).reduce(true, (a, b) -> a && b);
-                        if (reduce) {
-                            log.debug("判断 {} 是 {}'s join", pg.node.getId(), parallable.node.getId());
-
-                            paths.forEach(x -> x.stream()
-                                    .filter(y -> y != parallable)
-                                    .filter(y -> isParallelGateway(y))
-                                    .forEach(y -> {
-                                        y.addFork(parallable);
-                                    }));
-                            paths.forEach(x -> x.stream().filter(y -> !isParallelGateway(y))
-                                    .forEach(y -> {
-                                        y.addGate(parallable);
-                                    }));
-                            parallable.join = pg;
-                        }
                     }
-
-
                 }
-
             }
-
         }
 
     }

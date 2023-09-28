@@ -2,6 +2,7 @@ package io.github.spafka.flowable.returnTests;
 
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.service.FlowBase;
+import io.github.spafka.flowable.service.FlowNodeDto;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.engine.*;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,8 +33,6 @@ public class PallergateTests extends FlowBase {
 
     @Autowired
     DataSource dataSource;
-    @Resource
-    protected HistoryService historyService;
     @Autowired
     ProcessEngine processEngine;
     @Autowired
@@ -158,6 +158,9 @@ public class PallergateTests extends FlowBase {
         complete("whf", "T3");
         complete("whf", "T3-1");
         complete("whf", "T3-2");
+
+
+        List<FlowNodeDto> t7 = listCanRetuen("T7");
 
         return2Node("T7","T5");
         complete("whf", "T5");

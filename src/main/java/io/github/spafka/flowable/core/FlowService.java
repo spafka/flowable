@@ -104,7 +104,7 @@ public class FlowService {
 
     public List<FlowNodeDto> getBackNodes(String taskId) {
 
-        return returnService.getCanRejectedFlowNode(bpmnService.getBpmnModelByFlowableTaskId(taskId), taskId, "");
+        return returnService.getCanRejectedFlowNode(bpmnService.getBpmnModelByFlowableTaskId(taskId), taskId, "").f0;
 
 
     }
