@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
+             id="Definitions_1">
+
+    <process id="orderProcess" name="Order Process" isExecutable="true">
+
+        <!-- 开始事件 -->
+        <startEvent id="startEvent" name="Start"></startEvent>
+
+        <!-- 发送任务 -->
+        <serviceTask id="sendTask" name="Send Order" flowable:type="mail">
+            <extensionElements>
+                <flowable:field name="to">
+                    <flowable:string><![CDATA[supplier@example.com]]></flowable:string>
+                </flowable:field>
+                <flowable:field name="subject">
+                    <flowable:string><![CDATA[New Order]]></flowable:string>
+                </flowable:field>
+                <flowable:field name="text">
+                    <flowable:string><![CDATA[Please process the new order.]]></flowable:string>
+                </flowable:field>
+            </extensionElements>
+        </serviceTask>
+
+        <!-- 消息事件（等待供应商确认订单） -->
+        <intermediateCatchEvent id="messageEvent" name="Wait for Confirmation">
+            <messageEventDefinition messageRef="confirmationMessage" />
+        </intermediateCatchEvent>
+
+        <!-- 排他网关 -->
+        <exclusiveGateway id="exclusiveGateway"></exclusiveGateway>
+
+        <!-- 接收任务 -->
+        <receiveTask id="receiveTask" name="Receive Delivery">
+            <messageEventDefinition messageRef="deliveryMessage" />
+        </receiveTask>
+
+        <!-- 结束事件 -->
+        <endEvent id="endEvent" name="End"></endEvent>
+
+        <!-- 流程顺序 -->
+        <sequenceFlow id="flow1" sourceRef="startEvent" targetRef="sendTask" />
+        <sequenceFlow id="flow2" sourceRef="sendTask" targetRef="messageEvent" />
+        <sequenceFlow id="flow3" sourceRef="messageEvent" targetRef="exclusiveGateway" />
+        <sequenceFlow id="flow4" sourceRef="exclusiveGateway" targetRef="receiveTask">
+            <conditionExpression xsi:type="tFormalExpression">${confirmOrder}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="flow5" sourceRef="exclusiveGateway" targetRef="endEvent">
+            <conditionExpression xsi:type="tFormalExpression">${!confirmOrder}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="flow6" sourceRef="receiveTask" targetRef="endEvent" />
+
+    </process>
+
+    <!-- 消息定义 -->
+    <message id="confirmationMessage" name="Order Confirmation" />
+    <message id="deliveryMessage" name="Delivery Notification" />
+
+</definitions>

@@ -72,7 +72,7 @@ public class SubProcessRollbackTests extends FlowBase {
         complete("ls");
         complete("ww");
 
-        show(null);
+        show();
         taskReturn(null, "initiator1");
         complete("whf");
         complete("ls");
@@ -80,7 +80,7 @@ public class SubProcessRollbackTests extends FlowBase {
         complete("ww");
         complete("ls");
 
-        show(null);
+        show();
 
         debug();
         complete("whf");
@@ -88,7 +88,7 @@ public class SubProcessRollbackTests extends FlowBase {
         complete("ls");
         complete("ww");
 
-        show(null);
+        show();
 
         complete("zl");
         System.out.println();
@@ -228,33 +228,7 @@ public class SubProcessRollbackTests extends FlowBase {
     }
 
 
-    public void show(String processInstanceId) {
-        if (processInstanceId != null) {
-            InputStream diagram = flowService.diagram(processInstanceId);
-            try {
-                OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
-                IOUtils.copy(diagram, output);
-                output.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            List<Task> all = taskService.createTaskQuery()
-                    .processDefinitionName(processName)
-                    .list();
-            processInstanceId = all.get(0).getProcessInstanceId();
-            InputStream diagram = flowService.diagram(processInstanceId);
-            try {
-                OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
-                IOUtils.copy(diagram, output);
-                output.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
 
-
-    }
 
     public void showDiagram(String processInstanceId) {
         InputStream diagram = flowService.diagram(processInstanceId);

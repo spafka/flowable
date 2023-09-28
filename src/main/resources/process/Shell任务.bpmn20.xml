@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="shellprocess" name="Shell任务" isExecutable="true">
+    <documentation>Shell任务</documentation>
+    <startEvent id="startEvent1"></startEvent>
+    <serviceTask id="shelltask" name="Shell任务" flowable:type="shell">
+      <extensionElements>
+        <flowable:field name="command">
+          <flowable:string><![CDATA[cat  ]]></flowable:string>
+        </flowable:field>
+        <flowable:field name="arg1">
+          <flowable:string><![CDATA[/etc/passwd ]]></flowable:string>
+        </flowable:field>
+        <flowable:field name="arg2">
+          <flowable:string><![CDATA[ |] ]]></flowable:string>
+        </flowable:field>
+        <flowable:field name="arg3">
+          <flowable:string><![CDATA[ grep ]]></flowable:string>
+        </flowable:field>
+        <flowable:field name="arg4">
+          <flowable:string><![CDATA[root]]></flowable:string>
+        </flowable:field>
+        <flowable:field name="wait">
+          <flowable:string><![CDATA[true]]></flowable:string>
+        </flowable:field>
+        <flowable:field name="outputVariable">
+          <flowable:string><![CDATA[resultVar]]></flowable:string>
+        </flowable:field>
+      </extensionElements>
+    </serviceTask>
+    <userTask id="usertask" name="用户任务"></userTask>
+    <sequenceFlow id="sid-868352A5-5611-4422-B147-7164132D4388" sourceRef="shelltask" targetRef="usertask"></sequenceFlow>
+    <sequenceFlow id="sid-4DB031BB-38D0-400E-9E84-875D05681EDD" sourceRef="startEvent1" targetRef="shelltask"></sequenceFlow>
+    <endEvent id="sid-4C0D87E2-A63B-4701-8E92-DFE82E6CE542"></endEvent>
+    <sequenceFlow id="sid-D853ADB2-3FB2-4101-A108-CB003A923422" sourceRef="usertask" targetRef="sid-4C0D87E2-A63B-4701-8E92-DFE82E6CE542"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_shellprocess">
+    <bpmndi:BPMNPlane bpmnElement="shellprocess" id="BPMNPlane_shellprocess">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="195.0" y="250.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="shelltask" id="BPMNShape_shelltask">
+        <omgdc:Bounds height="80.0" width="100.0" x="330.0" y="225.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask" id="BPMNShape_usertask">
+        <omgdc:Bounds height="80.0" width="100.0" x="585.0" y="225.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-4C0D87E2-A63B-4701-8E92-DFE82E6CE542" id="BPMNShape_sid-4C0D87E2-A63B-4701-8E92-DFE82E6CE542">
+        <omgdc:Bounds height="28.0" width="28.0" x="730.0" y="251.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-4DB031BB-38D0-400E-9E84-875D05681EDD" id="BPMNEdge_sid-4DB031BB-38D0-400E-9E84-875D05681EDD">
+        <omgdi:waypoint x="224.9499993675608" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="330.0" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-D853ADB2-3FB2-4101-A108-CB003A923422" id="BPMNEdge_sid-D853ADB2-3FB2-4101-A108-CB003A923422">
+        <omgdi:waypoint x="684.9499999999999" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="730.0" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-868352A5-5611-4422-B147-7164132D4388" id="BPMNEdge_sid-868352A5-5611-4422-B147-7164132D4388">
+        <omgdi:waypoint x="429.9499999999562" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="584.9999999998755" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

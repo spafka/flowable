@@ -17,7 +17,6 @@ public class TaskCreateListener extends AbstractTaskListener {
     @Override
     public void execute(DelegateTask task) {
         log.info("[task] create{}", task);
-
     }
 
 

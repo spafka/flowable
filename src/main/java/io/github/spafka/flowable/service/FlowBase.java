@@ -5,6 +5,7 @@ import io.github.spafka.flowable.core.JoinUtils;
 import io.github.spafka.flowable.service.BpmnService;
 import io.github.spafka.flowable.service.FlowNodeDto;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.bpmn.model.Process;
@@ -15,6 +16,7 @@ import org.flowable.task.api.Task;
 import org.flowable.task.api.TaskInfo;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -28,6 +30,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SpringBootTest
 public class FlowBase {
 
     static int i = 0;
@@ -83,18 +86,20 @@ public class FlowBase {
         all.forEach(x -> System.out.println(String.format("Task[id=%s,name=%s,assignee=%s]", x.getId(), x.getName(), x.getAssignee())));
     }
 
-    public List<Task> listall() {
+    public List<Task> listall(String... processId) {
         return taskService.createTaskQuery()
+                .processInstanceId(processId.length > 0 ? processId[0] : null)
                 .list();
 
     }
 
-    public void show() {
+    public void show(String... processId) {
 
         String processInstanceId = null;
         List<Task> all = taskService.createTaskQuery()
+                .processInstanceId(processId.length > 0 ? processId[0] : null)
                 .list();
-        processInstanceId = all.get(0).getProcessInstanceId();
+        processInstanceId = ArrayUtils.isEmpty(processId) ? all.get(0).getProcessInstanceId() : processId[0];
         InputStream diagram = flowService.diagram(processInstanceId);
         try {
             OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
@@ -122,11 +127,8 @@ public class FlowBase {
                 .taskAssignee(user)
                 .list();
         list.stream().filter(x -> x.getName().equals(taskName))
-                .findFirst().ifPresentOrElse(x -> {
+                .findFirst().ifPresent(x -> {
                     taskService.complete(x.getId(), taskService.getVariables(x.getId()));
-
-                }, () -> {
-                    throw new RuntimeException("待办任务不存在 " + taskName);
                 });
 
 
@@ -140,16 +142,15 @@ public class FlowBase {
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(task.getProcessInstanceId()).list();
         List<FlowNodeDto> backNodes = flowService.getBackNodes(task.getId());
 
-        List<FlowNodeDto> flowNodeDtos = JoinUtils.sortJoin(backNodes,
+        return JoinUtils.sortJoin(backNodes,
                 list,
                 FlowNodeDto::getId,
                 TaskInfo::getTaskDefinitionKey,
                 (a, b) -> a);
-        return flowNodeDtos;
     }
 
     public void return2Node(String from, String to) {
-        Task task = null;
+        Task task;
         List<Task> all = taskService.createTaskQuery()
                 .list();
         task = all.stream().filter(x -> x.getName().equals(from)).findFirst().get();

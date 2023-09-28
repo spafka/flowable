@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="servicetaskexception" name="服务任务异常处理" isExecutable="true">
+    <documentation>服务任务异常处理</documentation>
+    <subProcess id="subprocess" name="子流程">
+      <serviceTask id="exceptiondeal" name="抛出业务异常" flowable:class="com.study.demo.delegate.ThrowingDelegate">
+       <extensionElements>
+    	  <flowable:mapException errorCode="localError"/>
+  	   </extensionElements>
+      </serviceTask>
+      <endEvent id="sid-FDF7347C-1DA1-4E4D-B7B5-37A796DA4421"></endEvent>
+      <startEvent id="sid-18ABBF78-7D33-4418-9974-647340FE4376"></startEvent>
+      <sequenceFlow id="sid-322FA595-6D8A-4957-8787-8F593D3A4BDB" sourceRef="exceptiondeal" targetRef="sid-FDF7347C-1DA1-4E4D-B7B5-37A796DA4421"></sequenceFlow>
+      <sequenceFlow id="sid-BA0B001E-81B0-47AC-9F73-3C33276053D7" sourceRef="sid-18ABBF78-7D33-4418-9974-647340FE4376" targetRef="exceptiondeal"></sequenceFlow>
+    </subProcess>
+    <startEvent id="sid-718B8D96-6BBC-46AF-AA5F-37A590771C4B"></startEvent>
+    <sequenceFlow id="sid-1C1B63E5-9AA1-44BF-9873-3BA897CC889A" sourceRef="sid-718B8D96-6BBC-46AF-AA5F-37A590771C4B" targetRef="subprocess"></sequenceFlow>
+    <sequenceFlow id="sid-E80103A8-DF71-435C-B07E-E292FB9DE459" sourceRef="catchexception" targetRef="exceptionprossors"></sequenceFlow>
+    <serviceTask id="exceptionprossors" name="异常处理器" flowable:class="com.study.demo.delegate.CatchExceptionDelegate"></serviceTask>
+    <boundaryEvent id="catchexception" name="异常捕获" attachedToRef="subprocess">
+      <errorEventDefinition errorRef="localError"></errorEventDefinition>
+    </boundaryEvent>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_servicetaskexception">
+    <bpmndi:BPMNPlane bpmnElement="servicetaskexception" id="BPMNPlane_servicetaskexception">
+      <bpmndi:BPMNShape bpmnElement="subprocess" id="BPMNShape_subprocess">
+        <omgdc:Bounds height="191.0" width="504.0" x="387.66666666666674" y="233.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exceptiondeal" id="BPMNShape_exceptiondeal">
+        <omgdc:Bounds height="80.0" width="100.0" x="540.0" y="270.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-FDF7347C-1DA1-4E4D-B7B5-37A796DA4421" id="BPMNShape_sid-FDF7347C-1DA1-4E4D-B7B5-37A796DA4421">
+        <omgdc:Bounds height="28.0" width="28.0" x="750.0" y="296.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-18ABBF78-7D33-4418-9974-647340FE4376" id="BPMNShape_sid-18ABBF78-7D33-4418-9974-647340FE4376">
+        <omgdc:Bounds height="30.0" width="30.0" x="435.0" y="295.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-718B8D96-6BBC-46AF-AA5F-37A590771C4B" id="BPMNShape_sid-718B8D96-6BBC-46AF-AA5F-37A590771C4B">
+        <omgdc:Bounds height="30.0" width="30.0" x="150.0" y="313.5"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exceptionprossors" id="BPMNShape_exceptionprossors">
+        <omgdc:Bounds height="80.0" width="100.0" x="624.6668354717493" y="480.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="catchexception" id="BPMNShape_catchexception">
+        <omgdc:Bounds height="30.0" width="30.0" x="660.0107973906361" y="409.938929202401"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-BA0B001E-81B0-47AC-9F73-3C33276053D7" id="BPMNEdge_sid-BA0B001E-81B0-47AC-9F73-3C33276053D7">
+        <omgdi:waypoint x="464.9499990675947" y="310.0"></omgdi:waypoint>
+        <omgdi:waypoint x="540.0" y="310.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-1C1B63E5-9AA1-44BF-9873-3BA897CC889A" id="BPMNEdge_sid-1C1B63E5-9AA1-44BF-9873-3BA897CC889A">
+        <omgdi:waypoint x="179.94999991884666" y="328.5"></omgdi:waypoint>
+        <omgdi:waypoint x="387.66666666666674" y="328.5"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-E80103A8-DF71-435C-B07E-E292FB9DE459" id="BPMNEdge_sid-E80103A8-DF71-435C-B07E-E292FB9DE459">
+        <omgdi:waypoint x="674.9565228523676" y="439.88883341196345"></omgdi:waypoint>
+        <omgdi:waypoint x="674.8113875848723" y="480.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-322FA595-6D8A-4957-8787-8F593D3A4BDB" id="BPMNEdge_sid-322FA595-6D8A-4957-8787-8F593D3A4BDB">
+        <omgdi:waypoint x="639.9499999999999" y="310.0"></omgdi:waypoint>
+        <omgdi:waypoint x="750.0" y="310.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="businessruleprocess" name="业务规则任务" isExecutable="true">
+    <documentation>业务规则任务</documentation>
+    <startEvent id="startEvent1"></startEvent>
+    <businessRuleTask id="businessruletask" name="业务规则任务" flowable:ruleVariablesInput="${order}" flowable:resultVariable="rulesOutput"
+    					flowable:class="com.study.demo.delegate.MyRuleServiceDelegate"></businessRuleTask>
+    <endEvent id="sid-1F3744B8-2642-4CA5-9FE1-B68D593AC13A"></endEvent>
+    <sequenceFlow id="sid-EC497088-D2E3-44CF-8A1A-92A0E94F8AE0" sourceRef="startEvent1" targetRef="businessruletask"></sequenceFlow>
+    <userTask id="user" name="usertask"></userTask>
+    <sequenceFlow id="sid-44EA5E63-24D9-4D3B-B673-1645C7E9DF99" sourceRef="businessruletask" targetRef="user"></sequenceFlow>
+    <sequenceFlow id="sid-753587C4-8F2F-4FA1-BDE0-4E3ADBD42C9E" sourceRef="user" targetRef="sid-1F3744B8-2642-4CA5-9FE1-B68D593AC13A"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_businessruleprocess">
+    <bpmndi:BPMNPlane bpmnElement="businessruleprocess" id="BPMNPlane_businessruleprocess">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="315.0" y="270.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="businessruletask" id="BPMNShape_businessruletask">
+        <omgdc:Bounds height="80.0" width="100.0" x="480.0" y="245.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-1F3744B8-2642-4CA5-9FE1-B68D593AC13A" id="BPMNShape_sid-1F3744B8-2642-4CA5-9FE1-B68D593AC13A">
+        <omgdc:Bounds height="28.0" width="28.0" x="870.0" y="271.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="user" id="BPMNShape_user">
+        <omgdc:Bounds height="80.0" width="100.0" x="645.0" y="245.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-EC497088-D2E3-44CF-8A1A-92A0E94F8AE0" id="BPMNEdge_sid-EC497088-D2E3-44CF-8A1A-92A0E94F8AE0">
+        <omgdi:waypoint x="344.94999954302153" y="285.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.0" y="285.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-753587C4-8F2F-4FA1-BDE0-4E3ADBD42C9E" id="BPMNEdge_sid-753587C4-8F2F-4FA1-BDE0-4E3ADBD42C9E">
+        <omgdi:waypoint x="744.9499999999999" y="285.0"></omgdi:waypoint>
+        <omgdi:waypoint x="870.0" y="285.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-44EA5E63-24D9-4D3B-B673-1645C7E9DF99" id="BPMNEdge_sid-44EA5E63-24D9-4D3B-B673-1645C7E9DF99">
+        <omgdi:waypoint x="579.9499999998898" y="285.0"></omgdi:waypoint>
+        <omgdi:waypoint x="644.9999999999847" y="285.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

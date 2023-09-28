@@ -15,6 +15,7 @@ import org.flowable.common.engine.impl.el.DefaultExpressionManager;
 import org.flowable.engine.delegate.event.impl.FlowableEntityEventImpl;
 import org.flowable.engine.delegate.event.impl.FlowableEntityWithVariablesEventImpl;
 import org.flowable.engine.impl.db.DbIdGenerator;
+
 import org.flowable.spring.SpringExpressionManager;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.flowable.spring.boot.EngineConfigurationConfigurer;
@@ -73,6 +74,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
         listenerMap.put(FlowableEngineEventType.PROCESS_COMPLETED.name(), Collections.singletonList(processCompleteListener));
         listenerMap.put(FlowableEngineEventType.PROCESS_STARTED.name(), Collections.singletonList(processStartListener));
 
+        engineConfiguration.setTypedEventListeners(listenerMap);
 
     }
 
@@ -170,4 +172,6 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
         dispatcher.addEventListener(PROCESS_COMPLETE, FlowableEngineEventType.PROCESS_COMPLETED);
 
     }
+
+
 }

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="tasklistenerprocess" name="任务监听器" isExecutable="true">
+    <documentation>任务监听器</documentation>
+    <startEvent id="startEvent1"></startEvent>
+    <userTask id="userClass" name="任务监听器：class方式">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.study.demo.tasklistener.MyTaskListener"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-53E83AF5-4367-4304-A932-300AAD7E5644" sourceRef="startEvent1" targetRef="userClass"></sequenceFlow>
+    <userTask id="userExpression" name="任务监听器：表达式方式">
+      <extensionElements>
+        <flowable:taskListener event="create" expression="${myTaskExpression.getDelegateTask(assgine)}"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-867B3D0E-5451-460A-B53F-4BAFFBFC40DE" sourceRef="userClass" targetRef="userExpression"></sequenceFlow>
+    <userTask id="userDelegateExpression" name="任务监听器：委托表达式方式">
+      <extensionElements>
+        <flowable:taskListener event="create" delegateExpression="${myTaskDelegateExpression}"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-D274FA1B-B3C6-4044-A10E-FF607FB7BC81" sourceRef="userExpression" targetRef="userDelegateExpression"></sequenceFlow>
+    <userTask id="userEvents" name="任务监听器：各种事件" flowable:assignee="lisi">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.study.demo.tasklistener.MyTaskListenerCreate"></flowable:taskListener>
+        <flowable:taskListener event="assignment" class="com.study.demo.tasklistener.MyTaskListenerAssignment"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.study.demo.tasklistener.MyTaskListenerComplete"></flowable:taskListener>
+        <flowable:taskListener event="delete" class="com.study.demo.tasklistener.MyTaskListenerDelete"></flowable:taskListener>
+        <modeler:activiti-idm-assignee xmlns:modeler="http://flowable.org/modeler"><![CDATA[true]]></modeler:activiti-idm-assignee>
+        <modeler:assignee-info-email xmlns:modeler="http://flowable.org/modeler"><![CDATA[lisi@lisi]]></modeler:assignee-info-email>
+        <modeler:assignee-info-firstname xmlns:modeler="http://flowable.org/modeler"><![CDATA[lisi]]></modeler:assignee-info-firstname>
+        <modeler:assignee-info-lastname xmlns:modeler="http://flowable.org/modeler"><![CDATA[lisi]]></modeler:assignee-info-lastname>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-5E1D47CA-3802-4FF4-A458-07D910ABA148" sourceRef="userDelegateExpression" targetRef="userEvents"></sequenceFlow>
+    <userTask id="user" name="人工任务"></userTask>
+    <sequenceFlow id="sid-792338A4-A86B-45BA-97E4-C6E4ECDDEAF4" sourceRef="userEvents" targetRef="user"></sequenceFlow>
+    <endEvent id="sid-91D4BBC2-BA4F-4E11-9AF8-72FC1E782B77"></endEvent>
+    <sequenceFlow id="sid-94C79C09-E562-49C6-9788-B41B0A420072" sourceRef="user" targetRef="sid-91D4BBC2-BA4F-4E11-9AF8-72FC1E782B77"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_tasklistenerprocess">
+    <bpmndi:BPMNPlane bpmnElement="tasklistenerprocess" id="BPMNPlane_tasklistenerprocess">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="105.0" y="205.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userClass" id="BPMNShape_userClass">
+        <omgdc:Bounds height="80.0" width="100.0" x="240.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userExpression" id="BPMNShape_userExpression">
+        <omgdc:Bounds height="80.0" width="100.0" x="435.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userDelegateExpression" id="BPMNShape_userDelegateExpression">
+        <omgdc:Bounds height="80.0" width="100.0" x="630.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userEvents" id="BPMNShape_userEvents">
+        <omgdc:Bounds height="80.0" width="100.0" x="765.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="user" id="BPMNShape_user">
+        <omgdc:Bounds height="80.0" width="100.0" x="920.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-91D4BBC2-BA4F-4E11-9AF8-72FC1E782B77" id="BPMNShape_sid-91D4BBC2-BA4F-4E11-9AF8-72FC1E782B77">
+        <omgdc:Bounds height="28.0" width="28.0" x="1065.0" y="206.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-53E83AF5-4367-4304-A932-300AAD7E5644" id="BPMNEdge_sid-53E83AF5-4367-4304-A932-300AAD7E5644">
+        <omgdi:waypoint x="134.94999936756076" y="220.0"></omgdi:waypoint>
+        <omgdi:waypoint x="239.99999999993562" y="220.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-D274FA1B-B3C6-4044-A10E-FF607FB7BC81" id="BPMNEdge_sid-D274FA1B-B3C6-4044-A10E-FF607FB7BC81">
+        <omgdi:waypoint x="534.9499999999803" y="220.0"></omgdi:waypoint>
+        <omgdi:waypoint x="630.0" y="220.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-94C79C09-E562-49C6-9788-B41B0A420072" id="BPMNEdge_sid-94C79C09-E562-49C6-9788-B41B0A420072">
+        <omgdi:waypoint x="1019.949999999996" y="220.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1065.0" y="220.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-5E1D47CA-3802-4FF4-A458-07D910ABA148" id="BPMNEdge_sid-5E1D47CA-3802-4FF4-A458-07D910ABA148">
+        <omgdi:waypoint x="729.9499999999999" y="220.0"></omgdi:waypoint>
+        <omgdi:waypoint x="764.999999999972" y="220.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-867B3D0E-5451-460A-B53F-4BAFFBFC40DE" id="BPMNEdge_sid-867B3D0E-5451-460A-B53F-4BAFFBFC40DE">
+        <omgdi:waypoint x="339.9499999999802" y="220.0"></omgdi:waypoint>
+        <omgdi:waypoint x="435.0" y="220.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-792338A4-A86B-45BA-97E4-C6E4ECDDEAF4" id="BPMNEdge_sid-792338A4-A86B-45BA-97E4-C6E4ECDDEAF4">
+        <omgdi:waypoint x="864.949999999976" y="220.0"></omgdi:waypoint>
+        <omgdi:waypoint x="920.0" y="220.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

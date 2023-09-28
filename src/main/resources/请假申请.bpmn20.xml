@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:flowable="http://flowable.org/bpmn" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.flowable.org/processdef">
+  <process id="testStart" name="请假申请" flowable:processCategory="oa">
+    <startEvent id="startNode1" name="开始">
+      <outgoing>Flow_1i6ntl4</outgoing>
+    </startEvent>
+    <sequenceFlow id="Flow_1i6ntl4" sourceRef="startNode1" targetRef="zhangsan" />
+    <userTask id="zhangsan" name="zhangsan" flowable:formKey="Approve:Level1" flowable:assignee="zhangsan">
+      <incoming>Flow_1i6ntl4</incoming>
+      <outgoing>Flow_1o2p3ne</outgoing>
+    </userTask>
+    <userTask id="lisi" name="lisi" flowable:formKey="Approve:Level2" flowable:assignee="lisi">
+      <incoming>Flow_1o2p3ne</incoming>
+      <outgoing>Flow_047dpg7</outgoing>
+    </userTask>
+    <endEvent id="Event_1mqklz0" name="结束">
+      <incoming>Flow_047dpg7</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_1o2p3ne" sourceRef="zhangsan" targetRef="lisi" />
+    <sequenceFlow id="Flow_047dpg7" sourceRef="lisi" targetRef="Event_1mqklz0" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_flow">
+    <bpmndi:BPMNPlane id="BPMNPlane_flow" bpmnElement="testStart">
+      <bpmndi:BPMNEdge id="Flow_1i6ntl4_di" bpmnElement="Flow_1i6ntl4">
+        <di:waypoint x="225" y="215" />
+        <di:waypoint x="320" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1o2p3ne_di" bpmnElement="Flow_1o2p3ne">
+        <di:waypoint x="420" y="215" />
+        <di:waypoint x="660" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_047dpg7_di" bpmnElement="Flow_047dpg7">
+        <di:waypoint x="760" y="215" />
+        <di:waypoint x="1002" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_startNode1" bpmnElement="startNode1" bioc:stroke="">
+        <omgdc:Bounds x="195" y="200" width="30" height="30" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="198" y="237" width="22" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0wi8psg_di" bpmnElement="zhangsan">
+        <omgdc:Bounds x="320" y="175" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17nhy2b_di" bpmnElement="lisi">
+        <omgdc:Bounds x="660" y="175" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1mqklz0_di" bpmnElement="Event_1mqklz0">
+        <omgdc:Bounds x="1002" y="197" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1010" y="240" width="22" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

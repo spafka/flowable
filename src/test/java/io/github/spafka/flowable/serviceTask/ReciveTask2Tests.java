@@ -1,31 +1,58 @@
-package io.github.spafka.flowable.event;
+package io.github.spafka.flowable.serviceTask;
 
+import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.service.FlowBase;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
+import org.flowable.engine.ProcessEngine;
+import org.flowable.engine.RepositoryService;
+import org.flowable.engine.RuntimeService;
+import org.flowable.engine.TaskService;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.locks.LockSupport;
 
+
+/**
+ * @see io.github.spafka.flowable.task.ServiceTaskDelegateExpression
+ */
 @SpringBootTest
-public class SignalTimeTests extends FlowBase {
+public class ReciveTask2Tests extends FlowBase {
 
-    private String key = "K1353567853857009";
-    private String processName = "回归测试";
+    private static final String key = "serviceTask";
+
+    @Autowired
+    DataSource dataSource;
+    @Autowired
+    ProcessEngine processEngine;
+    @Autowired
+    RepositoryService repositoryService;
+    @Autowired
+    TaskService taskService;
+    @Autowired
+    RuntimeService runtimeService;
+    @Autowired
+    FlowService flowService;
+
+    String processName = "服务任务";
+
+    String processId = "";
 
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("event/回归测试.bpmn20.xml")
+                .addClasspathResource("process/服务任务.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -33,12 +60,10 @@ public class SignalTimeTests extends FlowBase {
         System.out.println("deployment.getName() = " + deployment.getName());
 
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(deployment.getId()).singleResult();
-
         System.out.println("processDefinition = " + processDefinition);
     }
 
 
-    @Test
     public void submit() {
 
 
@@ -50,14 +75,18 @@ public class SignalTimeTests extends FlowBase {
 
 
         Map<String, Object> variables = new HashMap<>();
-        variables.put("date", FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss").format(System.currentTimeMillis() + 10 * 1000L));
-        variables.put("initiator", "whf");
-        variables.put("INITIATOR", "whf");
+        variables.put("days", 3);
+        variables.put("a", 99);
+        variables.put("b", 98);
+        variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
+
         variables.put("status", "approve");
+        variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR.toUpperCase(), "whf");
 
 
         ProcessInstance processInstance = runtimeService
                 .startProcessInstanceByKey(processDefinition.getKey(), variables);
+        processId = processInstance.getId();
 
         Task task = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
         if (Objects.nonNull(task)) {
@@ -66,35 +95,40 @@ public class SignalTimeTests extends FlowBase {
                 taskService.complete(task.getId(), variables);
             }
         }
+
     }
 
 
     @Test
-    public void test() {
+    public void trace() {
+
         deploy();
         submit();
+        listall(processId);
 
-        while (true) {
-            List<Task> listall = listall();
-
-            listall.forEach(x -> {
-
-                System.out.printf("%s %s %s %s\n", x.getId(), x.getAssignee(), x.getTaskDefinitionKey(), x.getTaskDefinitionKey());
-            });
-
-            if (listall.size() > 1) {
-                break;
-            }
-            LockSupport.parkNanos(10 * 1000_000_000L);
-        }
-
-        listCanRetuen("T4");
-        return2Node("T4","T1");
-
-        complete("whf","T1");
-        complete("whf","T2");
-        complete("whf","T3");
+        show(processId);
+        complete("whf"); //T1
+        List<Execution> list = runtimeService.createExecutionQuery()
+                .processInstanceId(processId)
+                .activityId("recv")
+                .list();
+        String executionId = list.get(0).getId();
+        show(processId);
+        runtimeService.trigger(executionId);
+        show(processId);
 
         System.out.println();
     }
+
+
+    @Test
+    @DisplayName("完整走完流程")
+    public void okshould() {
+        deploy();
+        submit();
+
+
+        // ScriptTaskActivityBehavior
+    }
+
 }
