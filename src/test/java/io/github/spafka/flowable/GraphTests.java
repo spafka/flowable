@@ -237,9 +237,9 @@ public class GraphTests {
 
 
     @Test
-    public void testPgNoJoin() {
+    public void testPgNoJoin(){
 
-        String xml =
+        String xml=
                 "src/main/resources/returntest/1开3并行流3end.bpmn20.xml";
         BpmnModel bpmnModel = init(xml);
         var r = Graphs.backTrack(bpmnModel, null, null);
@@ -248,35 +248,6 @@ public class GraphTests {
 
 
     }
-
-
-    public static void main(String[] args) {
-        try {
-            try {
-                // 加载XML文件
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                Document doc = builder.parse(new File("src/main/resources/returntest/1开3并行流.bpmn20.xml")); // 替换成实际的XML文件路径
-
-                // 查找所有<process>元素
-                NodeList processNodes = doc.getElementsByTagName("process");
-
-                // 遍历每个<process>元素
-                for (int i = 0; i < processNodes.getLength(); i++) {
-                    Element processElement = (Element) processNodes.item(i);
-
-                    // 获取globalViewUrl属性的值
-                    String globalViewUrl = processElement.getAttribute("flowable:globalViewUrl2");
-                    System.out.println("globalViewUrl value: " + globalViewUrl);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
 
 }

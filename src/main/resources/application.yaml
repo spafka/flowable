@@ -1,8 +1,8 @@
 logging:
   level:
     org.springframework: warn
-    org.flowable.engine.impl.persistence.entity.*: info
-    org.flowable.task.service.impl.persistence.entity.*: info
+    org.flowable.engine.impl.persistence.entity.*: debug
+    org.flowable.task.service.impl.persistence.entity.*: debug
     io.github.spafka.flowable.service.Graphs: info
 flowable:
   common:

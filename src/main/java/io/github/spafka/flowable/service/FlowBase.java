@@ -5,7 +5,6 @@ import io.github.spafka.flowable.core.JoinUtils;
 import io.github.spafka.flowable.service.BpmnService;
 import io.github.spafka.flowable.service.FlowNodeDto;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.bpmn.model.Process;
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 @SpringBootTest
 public class FlowBase {
 
@@ -86,20 +84,18 @@ public class FlowBase {
         all.forEach(x -> System.out.println(String.format("Task[id=%s,name=%s,assignee=%s]", x.getId(), x.getName(), x.getAssignee())));
     }
 
-    public List<Task> listall(String... processId) {
+    public List<Task> listall() {
         return taskService.createTaskQuery()
-                .processInstanceId(processId.length > 0 ? processId[0] : null)
                 .list();
 
     }
 
-    public void show(String... processId) {
+    public void show() {
 
         String processInstanceId = null;
         List<Task> all = taskService.createTaskQuery()
-                .processInstanceId(processId.length > 0 ? processId[0] : null)
                 .list();
-        processInstanceId = ArrayUtils.isEmpty(processId) ? all.get(0).getProcessInstanceId() : processId[0];
+        processInstanceId = all.get(0).getProcessInstanceId();
         InputStream diagram = flowService.diagram(processInstanceId);
         try {
             OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
@@ -127,8 +123,10 @@ public class FlowBase {
                 .taskAssignee(user)
                 .list();
         list.stream().filter(x -> x.getName().equals(taskName))
-                .findFirst().ifPresent(x -> {
+                .findFirst().ifPresentOrElse(x -> {
                     taskService.complete(x.getId(), taskService.getVariables(x.getId()));
+                }, () -> {
+                    throw new RuntimeException("待办任务不存在 " + taskName);
                 });
 
 
