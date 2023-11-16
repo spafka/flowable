@@ -24,11 +24,11 @@ public abstract class AbstractProcessStartListener extends AbstractFlowableEvent
             if (processName == null) {
                 processName = pd.getName();
             }
-            createProcess(startEvent.getProcessInstanceId(), pd.getKey(), processName, Integer.parseInt(deployment.getKey()));
+            createProcess(startEvent.getProcessInstanceId(), pd.getKey(), processName,deployment.getKey());
         }
     }
 
-    public abstract void createProcess(String processId, String processKey, String processName, int processVersion);
+    public abstract void createProcess(String processId, String processKey, String processName, String processVersion);
 
 
     @Override

@@ -1,7 +1,9 @@
-package io.github.spafka.flowable.returnTests;
+package io.github.spafka.flowable.multiinstance;
+
 
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.service.FlowBase;
+import io.github.spafka.flowable.service.ReturnService;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.engine.*;
@@ -9,25 +11,19 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-/**
- * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
- */
 @SpringBootTest
 
-public class ThreeEndsPallergateTests extends FlowBase {
+public class multiInstanceBackTests extends FlowBase {
 
-    private static final String key = "igend03";
+    private static final String key = "multiInstanceBack";
 
     @Autowired
     DataSource dataSource;
@@ -44,14 +40,18 @@ public class ThreeEndsPallergateTests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "1开3并行流";
+    String processName = "多实例驳回T2-T1";
 
     static int i = 0;
 
+    String processId = null;
+    @Autowired
+    ReturnService returnService;
 
+    @Test
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/1开3并行流.bpmn20.xml")
+                .addClasspathResource(String.format("process/%s.bpmn20.xml", processName))
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -63,7 +63,7 @@ public class ThreeEndsPallergateTests extends FlowBase {
         System.out.println("processDefinition = " + processDefinition);
     }
 
-
+    @Test
     public void submit() {
 
 
@@ -85,29 +85,57 @@ public class ThreeEndsPallergateTests extends FlowBase {
         ProcessInstance processInstance = runtimeService
                 .startProcessInstanceByKey(processDefinition.getKey(), variables);
 
-        Task task = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
-        if (Objects.nonNull(task)) {
-            String userIdStr = (String) variables.get(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR);
-            if (StringUtils.equals(task.getAssignee(), userIdStr)) {
-                taskService.complete(task.getId(), variables);
-            }
-        }
+        processId = processInstance.getId();
+
+
+    }
+
+
+    @Test
+    public void trace() {
+
+        listCanRetuen("T6");
+        System.out.println();
+    }
+
+
+    @Test
+    public void okshould() {
+
+
+        assert listall().isEmpty();
 
     }
 
     @Test
-    @DisplayName("完整走完流程")
-    public void okshould() {
-
+    public void okshould_case1() {
         deploy();
-
         submit();
-        complete("whf", "T2-1");
-        complete("whf", "T2-2");
-        complete("whf", "T2-3");
-        complete("whf", "T3");
+        show(processId);
 
 
-        assert listall().isEmpty();
+        Task task = taskService.createTaskQuery().processInstanceId(processId).singleResult();
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("days", 3);
+        variables.put("initiator", "whf");
+
+        // 设置多人会签的数据
+        variables.put("persons", Arrays.asList("zs", "ls", "ww", "zl"));
+        taskService.complete(task.getId(), variables);
+
+        List<Task> listall = listall(processId);
+
+        complete("zs");
+        show(processId);
+        complete("ls");
+        show(processId);
+        complete("ww");
+        show(processId);
+        complete("whf");
+        show(processId);
+        complete("whf");
+
+        System.out.println();
     }
+
 }

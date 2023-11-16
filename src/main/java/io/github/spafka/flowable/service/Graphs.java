@@ -86,8 +86,10 @@ public class Graphs {
          */
         flowElements.forEach(x -> {
             if (x instanceof SequenceFlow) {
-                TopologyNode<BaseElement> pre = indexMap.computeIfAbsent(((SequenceFlow) x).getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
-                TopologyNode<BaseElement> next = indexMap.computeIfAbsent(((SequenceFlow) x).getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
+
+                SequenceFlow x1 = (SequenceFlow) x;
+                TopologyNode<BaseElement> pre = indexMap.computeIfAbsent(x1.getSourceRef(), s -> new TopologyNode<>(idMap.get(s)));
+                TopologyNode<BaseElement> next = indexMap.computeIfAbsent(x1.getTargetRef(), s -> new TopologyNode<>(idMap.get(s)));
                 pre.addNext(next);
                 next.addSource(pre);
             }
@@ -357,6 +359,36 @@ public class Graphs {
 
     }
 
+    public static void findPathFromHead(Map<String, TopologyNode<BaseElement>> nodeMap, String startId, String currentId, List<LinkedList<TopologyNode<BaseElement>>> res, LinkedList<TopologyNode<BaseElement>> path, Set<String> visited) {
+        log.debug("{} {} {} {}", startId, currentId, path, visited);
+
+        if (path.isEmpty()) {
+            path.addFirst(nodeMap.get(startId));
+        }
+        if (path.getLast().node.getId().equals(startId)) {
+            res.add(new LinkedList<>(path));
+            return;
+        }
+        if (visited.contains(startId)) {
+            return;
+        }
+        TopologyNode<BaseElement> currentNode = nodeMap.get(currentId);
+        TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> pre = currentNode.pre;
+        if (visited.contains(currentNode.node.getId())) {
+            return;
+        }
+        visited.add(currentNode.node.getId());
+
+        for (TopologyNode<BaseElement> preNode : pre) {
+            path.addLast(preNode);
+            findPathFromBehind(nodeMap, startId, preNode.node.getId(), res, path, visited);
+            path.removeLast();
+        }
+        visited.remove(currentNode.node.getId());
+
+
+    }
+
     public static JumpTypeEnum judgeJumpType(List<LinkedList<TopologyNode<BaseElement>>> paths, TopologyNode<BaseElement> before, TopologyNode<BaseElement> later) {
 
         log.debug("{} gate:[{}] {}:gate[{}]", before.node.getId(), before.gateways, later.node.getId(), later.gateways);
@@ -430,6 +462,9 @@ public class Graphs {
         }
         TopologyNode<BaseElement>.SkipList<TopologyNode<BaseElement>> next = head.next;
         for (TopologyNode<BaseElement> f : next) {
+            if (path.stream().anyMatch(x -> x.getId().equals(f.node.getId()))) {
+                continue;
+            }
             path.addLast((FlowElement) f.node);
             currentToEndAllPath(f, tail, path, res);
             path.removeLast();

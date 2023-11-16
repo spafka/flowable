@@ -33,8 +33,6 @@ public class SuposTests extends FlowBase {
 
     @Autowired
     DataSource dataSource;
-    @Resource
-    protected HistoryService historyService;
     @Autowired
     ProcessEngine processEngine;
     @Autowired

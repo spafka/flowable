@@ -18,6 +18,4 @@ public class TaskCreateListener extends AbstractTaskListener {
     public void execute(DelegateTask task) {
         log.info("[task] create{}", task);
     }
-
-
 }

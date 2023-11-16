@@ -22,7 +22,6 @@ public class SaveExecutionCmd implements Command<Void>, Serializable {
     public SaveExecutionCmd(ExecutionEntity entity, IdGenerator idGenerator) {
         this.entity = entity;
         this.idGenerator = idGenerator;
-        ;
     }
 
     @Override

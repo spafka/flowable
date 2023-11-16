@@ -41,14 +41,14 @@ public class MultiTests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "会签";
+    String processName = "会签2";
 
     static int i = 0;
 
     @Test
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("会签.bpmn20.xml")
+                .addClasspathResource("process/会签2.bpmn20.xml")
                 .name(processName)
                 .key(key)
                 .deploy(); // 执行部署操作
@@ -74,9 +74,9 @@ public class MultiTests extends FlowBase {
         Map<String, Object> variables = new HashMap<>();
         variables.put("days", 3);
         variables.put("initiator", "whf");
-
+        variables.put("_FLOWABLE_SKIP_EXPRESSION_ENABLED", true);
         // 设置多人会签的数据
-        variables.put("persons", Arrays.asList("张三", "李四", "王五", "赵六"));
+        variables.put("persons", Arrays.asList("zs", "ls", "ww"));
 
 
         variables.put("status", "approve");
@@ -86,8 +86,46 @@ public class MultiTests extends FlowBase {
         ProcessInstance processInstance = runtimeService
                 .startProcessInstanceByKey(processDefinition.getKey(), variables);
 
+        Task task = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
+        if (Objects.nonNull(task)) {
+            String userIdStr = (String) variables.get(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR);
+            if (StringUtils.equals(task.getAssignee(), userIdStr)) {
+                taskService.complete(task.getId(), variables);
+            }
+        }
+
 
     }
+
+    public void completeOK(String user) {
+
+        List<Task> list = taskService.createTaskQuery()
+                .taskAssignee(user)
+                .list();
+        Task task1 = list.get(0);
+        Map<String, Object> map = new HashMap<>();
+
+        map.put("circulationConditions", "Y");
+        map.put("flag", true);
+        taskService.complete(task1.getId(), map);
+
+
+    }
+    public void completeNOK(String user) {
+
+        List<Task> list = taskService.createTaskQuery()
+                .taskAssignee(user)
+                .list();
+        Task task1 = list.get(0);
+        Map<String, Object> map = new HashMap<>();
+
+        map.put("circulationConditions", "N");
+
+        taskService.complete(task1.getId(), map);
+
+
+    }
+
 
 
     @Test
@@ -97,21 +135,26 @@ public class MultiTests extends FlowBase {
         submit();
         listall();
 
-        List<Task> listall = listall();
-        listall.stream().skip(2).forEach(x -> {
-            Map<String, Object> map = new HashMap<>();
-
-            map.put("flag", false);
-
-            taskService.complete(x.getId(), map);
-            System.out.println("complete ....");
-        });
-
-        Task task = listall.get(0);
+        List<Task> list = taskService.createTaskQuery()
+                .list();
+        Task task1 = list.get(0);
         Map<String, Object> map = new HashMap<>();
-        map.put("flag", true);
-        taskService.complete(task.getId(), map);
-        System.out.println("complete ....");
+
+        map.put("circulationConditions", "Y");
+        map.put("flag", false);
+        taskService.complete(task1.getId(),map);
+        show();
+
+        task1 = list.get(1);
+
+        map.put("circulationConditions", "N");
+        map.put("flag", false);
+        taskService.complete(task1.getId(),map);
+
+        list = taskService.createTaskQuery()
+                .list();
+
+        System.out.println();
 
 
 

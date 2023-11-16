@@ -1,28 +1,27 @@
 package io.github.spafka.flowable;
 
+import com.google.common.collect.Maps;
 import io.github.spafka.flowable.core.FlowableUtils;
 import io.github.spafka.flowable.core.TopologyNode;
+import io.github.spafka.flowable.service.FlowNodeDto;
 import io.github.spafka.flowable.service.Graphs;
+import io.github.spafka.flowable.service.JumpTypeEnum;
 import io.vavr.Tuple3;
+import io.vavr.Tuple4;
+import liquibase.pro.packaged.A;
 import lombok.var;
 import org.flowable.bpmn.converter.BpmnXMLConverter;
 import org.flowable.bpmn.model.*;
+import org.flowable.bpmn.model.Process;
 import org.junit.jupiter.api.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.springframework.util.CollectionUtils;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GraphTests {
 
@@ -237,14 +236,49 @@ public class GraphTests {
 
 
     @Test
-    public void testPgNoJoin(){
+    public void testPgNoJoin() {
 
-        String xml=
+        String xml =
                 "src/main/resources/returntest/1开3并行流3end.bpmn20.xml";
         BpmnModel bpmnModel = init(xml);
         var r = Graphs.backTrack(bpmnModel, null, null);
 
         System.out.printf("");
+
+
+    }
+
+    @Test
+    public void testJump() {
+
+        String xml =
+                "src/main/resources/returntest/简单并行网关02.bpmn20.xml";
+        BpmnModel bpmnModel = init(xml);
+
+
+        Tuple3<Map<String, TopologyNode<BaseElement>>, String, String> tuple3 = Graphs.buildGraph(bpmnModel, null, null);
+        LinkedList<LinkedList<FlowElement>> res = new LinkedList<>();
+        TopologyNode<BaseElement> head = tuple3._1.get(tuple3._3);
+        Graphs.currentToEndAllPath(head, null, new LinkedList<>(), res);
+        System.out.println();
+        LinkedHashSet<FlowNodeDto> users = new LinkedHashSet<>();
+
+        res.forEach(x -> {
+            x.stream().filter(y -> y instanceof UserTask).forEach(y -> {
+                users.add(new FlowNodeDto(y.getId(), y.getName()));
+            });
+        });
+
+        List<FlowNodeDto> collect = users.stream().sorted((a, b) -> {
+            LinkedList<LinkedList<FlowElement>> objects = new LinkedList<>();
+            LinkedList<LinkedList<FlowElement>> objects2 = new LinkedList<>();
+            Graphs.currentToEndAllPath(head, a.getId(), new LinkedList<>(), objects);
+            Graphs.currentToEndAllPath(head, b.getId(), new LinkedList<>(), objects2);
+            return objects.stream().map(LinkedList::size).max(Comparator.naturalOrder()).get().compareTo(objects2.stream().map(LinkedList::size).max(Comparator.naturalOrder()).get());
+
+        }).collect(Collectors.toList());
+
+        System.out.println();
 
 
     }

@@ -277,7 +277,7 @@ public class MainReturnService implements ReturnService {
         return false;
     }
 
-    protected void insertExecution(String gatewayId, String processInstanceId, String processDefinitionId, String tenantId) {
+    public void insertExecution(String gatewayId, String processInstanceId, String processDefinitionId, String tenantId) {
 
 
         ExecutionEntityManager executionEntityManager = ((ProcessEngineConfigurationImpl) processEngineConfiguration).getExecutionEntityManager();

@@ -1,4 +1,4 @@
-package io.github.spafka.flowable.returnTests;
+package io.github.spafka.flowable.multiinstance;
 
 import io.github.spafka.flowable.core.FlowService;
 import io.github.spafka.flowable.service.FlowBase;
@@ -9,25 +9,22 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
  */
 @SpringBootTest
 
-public class ThreeEndsPallergateTests extends FlowBase {
+public class MultiTests2 extends FlowBase {
 
-    private static final String key = "igend03";
+    private static final String key = "myProcess";
 
     @Autowired
     DataSource dataSource;
@@ -44,16 +41,18 @@ public class ThreeEndsPallergateTests extends FlowBase {
     @Autowired
     FlowService flowService;
 
-    String processName = "1开3并行流";
+    String processName = "会签";
 
     static int i = 0;
 
-
+    @Test
     public void deploy() {
         Deployment deployment = repositoryService.createDeployment()
-                .addClasspathResource("returntest/1开3并行流.bpmn20.xml")
+                .addClasspathResource("会签.bpmn20.xml")
                 .name(processName)
                 .key(key)
+                .disableSchemaValidation()
+                .disableBpmnValidation()
                 .deploy(); // 执行部署操作
         System.out.println("deployment.getId() = " + deployment.getId());
         System.out.println("deployment.getName() = " + deployment.getName());
@@ -63,7 +62,7 @@ public class ThreeEndsPallergateTests extends FlowBase {
         System.out.println("processDefinition = " + processDefinition);
     }
 
-
+    @Test
     public void submit() {
 
 
@@ -77,37 +76,49 @@ public class ThreeEndsPallergateTests extends FlowBase {
         Map<String, Object> variables = new HashMap<>();
         variables.put("days", 3);
         variables.put("initiator", "whf");
+        variables.put("INITIATOR", "whf");
+        // 设置多人会签的数据
+        variables.put("persons", Arrays.asList("张三", "李四", "王五"));
+
 
         variables.put("status", "approve");
         variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
 
 
-        ProcessInstance processInstance = runtimeService
-                .startProcessInstanceByKey(processDefinition.getKey(), variables);
+        ProcessInstance processInstance = runtimeService.createProcessInstanceBuilder()
+                .processDefinitionId(processDefinition.getId())
+                .transientVariables(variables)
+                .variables(variables)
+                .predefineProcessInstanceId(System.currentTimeMillis()+"")
+                .start();
 
-        Task task = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
-        if (Objects.nonNull(task)) {
-            String userIdStr = (String) variables.get(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR);
-            if (StringUtils.equals(task.getAssignee(), userIdStr)) {
-                taskService.complete(task.getId(), variables);
-            }
-        }
 
     }
+
 
     @Test
-    @DisplayName("完整走完流程")
-    public void okshould() {
+    public void startTasks() {
 
         deploy();
-
         submit();
-        complete("whf", "T2-1");
-        complete("whf", "T2-2");
-        complete("whf", "T2-3");
-        complete("whf", "T3");
+        listall();
+        List<Task> listall = listall();
+        listall.forEach(x -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("flag", false);
+            taskService.complete(x.getId(), map);
+
+        });
+
+        Task task = listall.get(0);
+
+        show(listall.get(0).getProcessInstanceId());
+
+        System.out.println("complete ....");
 
 
-        assert listall().isEmpty();
+
     }
+
+
 }

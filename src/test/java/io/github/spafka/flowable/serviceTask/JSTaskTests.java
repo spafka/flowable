@@ -75,9 +75,13 @@ public class JSTaskTests extends FlowBase {
 
 
         Map<String, Object> variables = new HashMap<>();
-        variables.put("time", 22);
+        variables.put("time", 1);
+        variables.put("skip", true );
         variables.put("a", 99);
         variables.put("b", 98);
+        variables.put("processId",processId);
+        variables.put("init","init");
+        variables.put("_FLOWABLE_SKIP_EXPRESSION_ENABLED", true);
         variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
 
         variables.put("status", "approve");
@@ -111,7 +115,19 @@ public class JSTaskTests extends FlowBase {
 
         show(processId);
 
+        List<Task> listall = listall(processId);
+
         System.out.println();
+    }
+    public void complete(String user) {
+
+        List<Task> list = taskService.createTaskQuery()
+                .taskAssignee(user)
+                .list();
+        Task task1 = list.get(0);
+        taskService.complete(task1.getId(), null,taskService.getVariables(task1.getId()));
+
+
     }
 
 

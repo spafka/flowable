@@ -54,6 +54,8 @@ public class PallergateTests extends FlowBase {
                 .addClasspathResource("returntest/复杂并行网关.bpmn20.xml")
                 .name(processName)
                 .key(key)
+                .disableBpmnValidation()
+                .disableSchemaValidation()
                 .deploy(); // 执行部署操作
         System.out.println("deployment.getId() = " + deployment.getId());
         System.out.println("deployment.getName() = " + deployment.getName());

@@ -17,7 +17,7 @@ public class TopologyNode<T extends BaseElement> implements Comparable<TopologyN
     public SkipList<TopologyNode<T>> gateways = new SkipList<>();
 
     public Set<TopologyNode<T>> forks = new HashSet<>();
-    public Set<TopologyNode<T>> join=new HashSet<>();
+    public Set<TopologyNode<T>> join = new HashSet<>();
 
     public TopologyNode(T node) {
         this.node = node;
@@ -25,6 +25,7 @@ public class TopologyNode<T extends BaseElement> implements Comparable<TopologyN
 
     @Override
     public int compareTo(TopologyNode<T> o) {
+
         return this.node.getId().compareTo(o.node.getId());
     }
 

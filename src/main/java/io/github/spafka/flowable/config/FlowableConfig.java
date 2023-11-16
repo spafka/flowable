@@ -4,14 +4,17 @@ import com.google.common.collect.Maps;
 import io.github.spafka.flowable.listerener.listener.TaskCompleteListener;
 import io.github.spafka.flowable.listerener.listener.TaskCreateListener;
 import io.github.spafka.flowable.listerener.listener.TaskDeleteListener;
+import io.github.spafka.flowable.listerener.listener.process.CustomTaskEventListener;
 import io.github.spafka.flowable.listerener.listener.process.ProcessCompleteListener;
 import io.github.spafka.flowable.listerener.listener.process.ProcessStartListener;
+import liquibase.pro.packaged.L;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.common.engine.api.delegate.event.FlowableEngineEventType;
 import org.flowable.common.engine.api.delegate.event.FlowableEvent;
 import org.flowable.common.engine.api.delegate.event.FlowableEventDispatcher;
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener;
 import org.flowable.common.engine.impl.el.DefaultExpressionManager;
+import org.flowable.engine.ProcessEngine;
 import org.flowable.engine.delegate.event.impl.FlowableEntityEventImpl;
 import org.flowable.engine.delegate.event.impl.FlowableEntityWithVariablesEventImpl;
 import org.flowable.engine.impl.db.DbIdGenerator;
@@ -21,6 +24,7 @@ import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.flowable.spring.boot.EngineConfigurationConfigurer;
 import org.flowable.task.service.impl.persistence.entity.TaskEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
@@ -31,10 +35,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Flow;
 
 @Slf4j()
 @Configuration
-public class FlowableConfig implements EngineConfigurationConfigurer<SpringProcessEngineConfiguration>, ApplicationListener<ContextRefreshedEvent> {
+public class FlowableConfig implements EngineConfigurationConfigurer<SpringProcessEngineConfiguration>, ApplicationListener<ContextRefreshedEvent>, CommandLineRunner {
 
 
     @Autowired
@@ -58,6 +63,11 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
 
     @Autowired
     SpringProcessEngineConfiguration engineConfiguration;
+    @Autowired
+    @Lazy
+    ProcessEngine processEngine;
+    @Autowired
+    CustomTaskEventListener customTaskEventListener;
 
     @Override
     public void configure(SpringProcessEngineConfiguration engineConfiguration) {
@@ -81,6 +91,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
 
+
         FlowableEventDispatcher dispatcher = engineConfiguration.getEventDispatcher();
 
         FlowableEventListener TASK_COMPLETED = new FlowableEventListener() {
@@ -91,10 +102,11 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
                     FlowableEntityEventImpl flowableEvent1 = (FlowableEntityEventImpl) flowableEvent;
                     TaskEntity taskEntity = (TaskEntity) flowableEvent1.getEntity();
                     log.debug("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskEntity.getExecutionId());
-
+                    FlowContext.get().compleTasks.add(taskEntity);
                 } else {
                     FlowableEntityWithVariablesEventImpl taskComplete = (FlowableEntityWithVariablesEventImpl) flowableEvent;
                     TaskEntity taskEntity = (TaskEntity) taskComplete.getEntity();
+                    FlowContext.get().compleTasks.add(taskEntity);
                     log.debug("任务完成 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskComplete.getExecutionId());
                 }
             }
@@ -120,6 +132,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
 
                 org.flowable.common.engine.impl.event.FlowableEntityEventImpl taskCreate = (org.flowable.common.engine.impl.event.FlowableEntityEventImpl) flowableEvent;
                 TaskEntity taskEntity = (TaskEntity) taskCreate.getEntity();
+                FlowContext.get().pendingTasks.add(taskEntity);
                 log.debug("任务创建 task: {} Assignee()={},executionId={}", taskEntity.getName(), taskEntity.getAssignee(), taskCreate.getExecutionId());
             }
 
@@ -174,4 +187,9 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
     }
 
 
+    @Override
+    public void run(String... args) throws Exception {
+        processEngine.getRuntimeService().addEventListener(customTaskEventListener);
+
+    }
 }

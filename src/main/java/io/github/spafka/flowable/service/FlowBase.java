@@ -5,15 +5,21 @@ import io.github.spafka.flowable.core.JoinUtils;
 import io.github.spafka.flowable.service.BpmnService;
 import io.github.spafka.flowable.service.FlowNodeDto;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.SubProcess;
 import org.flowable.engine.*;
+import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.TaskInfo;
 import org.flowable.task.api.history.HistoricTaskInstance;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -23,17 +29,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 @SpringBootTest
 public class FlowBase {
 
     static int i = 0;
 
-    String processName = "s";
+    public String processName = "s";
 
     @Autowired
     public RuntimeService runtimeService;
@@ -51,6 +56,10 @@ public class FlowBase {
     public ProcessEngine processEngine;
     @Autowired
     public RepositoryService repositoryService;
+
+    public String processInstanceId;
+
+   public ProcessDefinition processDefinition;
 
 
     public void diagram(RepositoryService repositoryService, String processName) {
@@ -84,18 +93,17 @@ public class FlowBase {
         all.forEach(x -> System.out.println(String.format("Task[id=%s,name=%s,assignee=%s]", x.getId(), x.getName(), x.getAssignee())));
     }
 
-    public List<Task> listall() {
+    public List<Task> listall(String... processId) {
         return taskService.createTaskQuery()
+                .processInstanceId(processId.length > 0 ? processId[0] : null)
                 .list();
 
     }
 
-    public void show() {
+    public void show(String... processId) {
 
-        String processInstanceId = null;
-        List<Task> all = taskService.createTaskQuery()
-                .list();
-        processInstanceId = all.get(0).getProcessInstanceId();
+        String processInstanceId;
+        processInstanceId = ArrayUtils.isEmpty(processId) ? this.processInstanceId : processId[0];
         InputStream diagram = flowService.diagram(processInstanceId);
         try {
             OutputStream output = Files.newOutputStream(new File(processName + i++ + ".png").toPath());
@@ -154,6 +162,52 @@ public class FlowBase {
         task = all.stream().filter(x -> x.getName().equals(from)).findFirst().get();
         flowService.backTask(task.getId(), to);
 
+
+    }
+
+
+    public void deploy(String key, String processName, String xml) {
+        Deployment deployment = repositoryService.createDeployment()
+                .addClasspathResource(xml)
+                .name(processName)
+                .key(key)
+                .deploy(); // 执行部署操作
+        System.out.println("deployment.getId() = " + deployment.getId());
+        System.out.println("deployment.getName() = " + deployment.getName());
+
+        processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(deployment.getId()).singleResult();
+
+        System.out.println("processDefinition = " + processDefinition);
+    }
+
+
+    public void submit() {
+
+
+        ProcessDefinition processDefinition = repositoryService
+                .createProcessDefinitionQuery()
+                .processDefinitionName(processName)
+                .latestVersion()
+                .singleResult();
+
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("days", 3);
+        variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, "whf");
+
+        variables.put("INITIATOR", "whf");
+
+        ProcessInstance processInstance = runtimeService
+                .startProcessInstanceByKey(processDefinition.getKey(), variables);
+
+        processInstanceId = processInstance.getProcessInstanceId();
+//        Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
+//        if (Objects.nonNull(task)) {
+//            String userIdStr = (String) variables.get(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR);
+//            if (StringUtils.equals(task.getAssignee(), userIdStr)) {
+//                taskService.complete(task.getId(), variables);
+//            }
+//        }
 
     }
 }

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://www.flowable.org/processdef">
+    <process id="countersign" name="Duorenhuiqian" isExecutable="true">
+        <startEvent id="startEvent1" flowable:formFieldValidation="true"></startEvent>
+        <userTask id="UserTask1" name="U1" flowable:assignee="${assignee}" flowable:formFieldValidation="true">
+            <extensionElements>
+                <!--<flowable:executionListener event="start" class="com.cars.ngtdms.cooperation.flowable.listener.CountersignListener"></flowable:executionListener>-->
+                <flowable:executionListener event="start"
+                                            delegateExpression="${countersignListener}"></flowable:executionListener>
+                <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler">
+                    <![CDATA[false]]></modeler:initiator-can-complete>
+            </extensionElements>
+            <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="assigneeList"
+                                              flowable:elementVariable="assignee">
+                <completionCondition>${multiInstance.accessCondition(execution)}</completionCondition>
+            </multiInstanceLoopCharacteristics>
+        </userTask>
+        <sequenceFlow id="sid-50622098-77B0-4413-A1D4-088B47DEC95F" sourceRef="startEvent1"
+                      targetRef="UserTask1"></sequenceFlow>
+        <userTask id="UserTask2" name="U2" flowable:assignee="WXF" flowable:formFieldValidation="true">
+            <extensionElements>
+                <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler">
+                    <![CDATA[false]]></modeler:initiator-can-complete>
+            </extensionElements>
+        </userTask>
+        <endEvent id="sid-814B8939-308D-4003-8B35-B750DC8F8A5C"></endEvent>
+        <exclusiveGateway id="getWay" name="getWay"></exclusiveGateway>
+        <userTask id="UserTask3" name="U3" flowable:assignee="PXY" flowable:formFieldValidation="true">
+            <extensionElements>
+                <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler">
+                    <![CDATA[false]]></modeler:initiator-can-complete>
+            </extensionElements>
+        </userTask>
+        <endEvent id="sid-4C2BFAF2-08AC-4F89-A964-046EA583F0B5"></endEvent>
+        <sequenceFlow id="sid-CE25CF8A-5BF2-4227-A747-98F6A053283E" sourceRef="UserTask3"
+                      targetRef="sid-4C2BFAF2-08AC-4F89-A964-046EA583F0B5"></sequenceFlow>
+        <sequenceFlow id="sid-0F397F15-5685-4DF0-B7E0-75C3AB43F6D8" sourceRef="UserTask2"
+                      targetRef="sid-814B8939-308D-4003-8B35-B750DC8F8A5C"></sequenceFlow>
+        <sequenceFlow id="sid-74E664CC-0FC9-49A6-A47C-BCFA1198F074" sourceRef="UserTask1"
+                      targetRef="getWay"></sequenceFlow>
+        <sequenceFlow id="repply" name="通过" sourceRef="getWay" targetRef="UserTask2">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${outcome=='通过'}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="reject" name="否决" sourceRef="getWay" targetRef="UserTask3">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${outcome=='否决'}]]></conditionExpression>
+        </sequenceFlow>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_countersign">
+        <bpmndi:BPMNPlane bpmnElement="countersign" id="BPMNPlane_countersign">
+            <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+                <omgdc:Bounds height="30.0" width="30.0" x="135.0" y="290.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="UserTask1" id="BPMNShape_UserTask1">
+                <omgdc:Bounds height="80.0" width="100.0" x="255.0" y="265.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="UserTask2" id="BPMNShape_UserTask2">
+                <omgdc:Bounds height="80.0" width="100.0" x="495.0" y="120.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="sid-814B8939-308D-4003-8B35-B750DC8F8A5C"
+                              id="BPMNShape_sid-814B8939-308D-4003-8B35-B750DC8F8A5C">
+                <omgdc:Bounds height="28.0" width="28.0" x="750.0" y="146.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="getWay" id="BPMNShape_getWay">
+                <omgdc:Bounds height="40.0" width="40.0" x="525.0" y="285.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="UserTask3" id="BPMNShape_UserTask3">
+                <omgdc:Bounds height="80.0" width="100.0" x="495.0" y="405.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="sid-4C2BFAF2-08AC-4F89-A964-046EA583F0B5"
+                              id="BPMNShape_sid-4C2BFAF2-08AC-4F89-A964-046EA583F0B5">
+                <omgdc:Bounds height="28.0" width="28.0" x="645.0" y="431.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="sid-50622098-77B0-4413-A1D4-088B47DEC95F"
+                             id="BPMNEdge_sid-50622098-77B0-4413-A1D4-088B47DEC95F">
+                <omgdi:waypoint x="164.94999923927443" y="305.0"></omgdi:waypoint>
+                <omgdi:waypoint x="255.0" y="305.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-74E664CC-0FC9-49A6-A47C-BCFA1198F074"
+                             id="BPMNEdge_sid-74E664CC-0FC9-49A6-A47C-BCFA1198F074">
+                <omgdi:waypoint x="354.9499999999567" y="305.10384615384606"></omgdi:waypoint>
+                <omgdi:waypoint x="525.4583333333242" y="305.4583333333333"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="reject" id="BPMNEdge_reject">
+                <omgdi:waypoint x="545.431654676259" y="324.51130481667866"></omgdi:waypoint>
+                <omgdi:waypoint x="545.1431899641577" y="405.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-0F397F15-5685-4DF0-B7E0-75C3AB43F6D8"
+                             id="BPMNEdge_sid-0F397F15-5685-4DF0-B7E0-75C3AB43F6D8">
+                <omgdi:waypoint x="594.9499999999925" y="160.0"></omgdi:waypoint>
+                <omgdi:waypoint x="750.0" y="160.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="repply" id="BPMNEdge_repply">
+                <omgdi:waypoint x="545.4310344827586" y="285.4310344827586"></omgdi:waypoint>
+                <omgdi:waypoint x="545.1372852233677" y="199.95"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-CE25CF8A-5BF2-4227-A747-98F6A053283E"
+                             id="BPMNEdge_sid-CE25CF8A-5BF2-4227-A747-98F6A053283E">
+                <omgdi:waypoint x="594.9499999997366" y="445.0"></omgdi:waypoint>
+                <omgdi:waypoint x="645.0" y="445.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

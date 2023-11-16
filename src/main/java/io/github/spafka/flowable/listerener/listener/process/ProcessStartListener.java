@@ -13,9 +13,9 @@ public class ProcessStartListener extends AbstractProcessStartListener {
 
 
     @Override
-    public void createProcess(String processId, String processKey, String processName, int processVersion) {
+    public void createProcess(String processId, String processKey, String processName, String processVersion) {
 
-        log.info("{} {} {}");
+        log.info("流程创建 {} {} {} {}", processKey, processName, processVersion, processId);
     }
 
 }
