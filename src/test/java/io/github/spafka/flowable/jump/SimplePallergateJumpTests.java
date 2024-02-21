@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @link {{src/main/resources/returntest/复杂并行网关.bpmn20.xml}}
@@ -218,5 +220,9 @@ public class SimplePallergateJumpTests extends FlowBase {
         show(processInstanceId);
 
     }
+
+
+
+
 
 }

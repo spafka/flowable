@@ -110,7 +110,7 @@ public class FlowService {
     }
 
 
-    public void backTask(String taskId, String to) {
+    public void backTask(String taskId, String... to) {
 
         Task task = taskService.createTaskQuery()
                 .taskId(taskId).singleResult();

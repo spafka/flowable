@@ -125,11 +125,11 @@ public class MainReturnService implements ReturnService {
 
         boolean ok = FlowableUtils.iteratorCheckSequentialReferTarget((FlowElement) indexMap.get(task.getTaskDefinitionKey()).node, collect.get(collect.size() - 1).getId(), null, null);
 
-        return Tuple2.of(collect,ok);
+        return Tuple2.of(collect, ok);
     }
 
     @Override
-    public boolean returnToTarget(Task task, String targetId) {
+    public boolean returnToTarget(Task task, String... targetId) {
         String currentId = task.getTaskDefinitionKey();
 
         String processInstanceId = task.getProcessInstanceId();
@@ -149,11 +149,11 @@ public class MainReturnService implements ReturnService {
         List<Execution> executions = runtimeService.createExecutionQuery().processInstanceId(processInstanceId).list().stream().filter(x -> x.getActivityId() != null).collect(Collectors.toList());
 
 
-        var tuple = Graphs.backTrack(model, currentId, targetId);
+        var tuple = Graphs.backTrack(model, currentId, targetId[0]);
 
         Map<String, TopologyNode<BaseElement>> indexMap = tuple._4;
 
-        var topologyNode = indexMap.get(targetId);
+        var topologyNode = indexMap.get(targetId[0]);
 
         {
             if (tuple._1 == JumpTypeEnum.simple_serial || tuple._1 == JumpTypeEnum.paral_to_child) {
@@ -201,14 +201,16 @@ public class MainReturnService implements ReturnService {
             log.info("简单串行驳回 {} 2 {}", currentId, targetId);
             runtimeService.createChangeActivityStateBuilder()
                     .processInstanceId(processInstanceId)
-                    .moveActivityIdTo(currentId, targetId)
+                    .moveActivityIdTo(currentId, targetId[0])
                     .changeState();
         } else if (tuple._1 == JumpTypeEnum.paral_to_child) {
             log.info("并行驳回到join到fork分支 {} 2 {}", currentId, targetId);
 
             LinkedList<LinkedList<FlowElement>> pathToEnd = new LinkedList<>();
 
-            Graphs.currentToEndAllPath(topologyNode, null, new LinkedList<>(), pathToEnd);
+            Arrays.stream(targetId).forEach(x -> {
+                Graphs.currentToEndAllPath(indexMap.get(x), null, new LinkedList<>(), pathToEnd);
+            });
 
 
             List<FlowElement> toEnd = pathToEnd.stream().flatMap(Collection::stream)
@@ -216,20 +218,18 @@ public class MainReturnService implements ReturnService {
             List<String> executionIds = JoinUtils.innerJoin(executions, toEnd, (a, b) -> a.getId(), Execution::getActivityId, BaseElement::getId);
             log.info("当前executions {} {}", executionIds, executions);
 
-
             runtimeService.createChangeActivityStateBuilder()
                     .processInstanceId(processInstanceId)
-                    .moveExecutionsToSingleActivityId(executionIds, targetId)
+                    .moveSingleActivityIdToActivityIds(task.getTaskDefinitionKey(), Arrays.stream(targetId).sorted().collect(Collectors.toList()))
                     .changeState();
 
-            Set<FlowElement> sequenceFlows = tuple._3;
-            sequenceFlows.forEach(x -> {
+            pathToEnd.stream().flatMap(Collection::stream).distinct().forEach(x -> {
                 if (x instanceof Gateway) {
                     if (executionIds.contains(x.getId())) {
                         return;
                     }
-                    if (runtimeService.createNativeExecutionQuery().sql(String.format("select * from act_ru_execution where PROC_INST_ID_='%s' and ACT_ID_='%s';", processDefinition, x.getId())).list().isEmpty()) {
-                        insertExecution(x.getId(), processInstanceId, processDefinition.getId(), processDefinition.getTenantId());
+                    if (runtimeService.createNativeExecutionQuery().sql(String.format("select * from act_ru_execution where PROC_INST_ID_='%s' and ACT_ID_='%s'", processInstanceId, x.getId())).list().isEmpty()) {
+                      //  insertExecution(x.getId(), processInstanceId, processDefinition.getId(), processDefinition.getTenantId());
                     }
                 }
             });
@@ -254,7 +254,7 @@ public class MainReturnService implements ReturnService {
             log.info("当前executions {} {}", executionIds, executions);
             runtimeService.createChangeActivityStateBuilder()
                     .processInstanceId(processInstanceId)
-                    .moveExecutionsToSingleActivityId(executionIds, targetId)
+                    .moveExecutionsToSingleActivityId(executionIds, targetId[0])
                     .changeState();
             // 子流程bug
             if (((FlowElement) indexMap.get(currentId).node).getParentContainer() != ((FlowElement) indexMap.get(targetId).node).getParentContainer()) {

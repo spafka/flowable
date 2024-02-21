@@ -1,88 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:flowable="http://flowable.org/bpmn" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" targetNamespace="http://www.activiti.org/test">
-  <process id="myProcess" name="会签" isExecutable="true">
-    <startEvent id="startevent1" name="Start" />
-    <userTask id="usertask1" name="User Task">
-      <extensionElements>
-        <activiti:taskListener event="create" expression="${mulitiInstanceTaskListener.completeListener(execution)}" />
-        <flowable:taskListener expression="${taskCreateListener.notify(task)}" event="create" />
-        <flowable:taskListener expression="${taskDeleteListener.notify(task)}" event="delete" />
-      </extensionElements>
-      <outgoing>Flow_1dz2re4</outgoing>
-      <multiInstanceLoopCharacteristics activiti:collection="persons" activiti:elementVariable="person">
-        <loopCardinality>3</loopCardinality>
-        <completionCondition>${nrOfCompletedInstances/nrOfInstances &gt;= 1 }</completionCondition>
-      </multiInstanceLoopCharacteristics>
-    </userTask>
-    <sequenceFlow id="flow1" sourceRef="startevent1" targetRef="usertask1" />
-    <endEvent id="endevent1" name="End">
-      <incoming>Flow_08p2gxt</incoming>
-    </endEvent>
-    <sequenceFlow id="Flow_1dz2re4" sourceRef="usertask1" targetRef="Activity_1y3pvyb" />
-    <userTask id="Activity_1y3pvyb" name="T1" flowable:assignee="${INITIATOR}" flowable:userType="initiator">
-      <incoming>Flow_1dz2re4</incoming>
-      <outgoing>Flow_0jfdfbx</outgoing>
-      <extensionElements>
-        <flowable:taskListener expression="${taskCreateListener.notify(task)}" event="create" />
-        <flowable:taskListener expression="${taskDeleteListener.notify(task)}" event="delete" />
-      </extensionElements>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:flowable="http://flowable.org/bpmn" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:activiti="http://activiti.org/bpmn" targetNamespace="http://www.activiti.org/test">
+    <process id="myProcess" name="会签" isExecutable="true">
+        <startEvent id="startevent1" name="Start"/>
+        <userTask id="usertask1" name="User Task">
+            <extensionElements>
+                <activiti:taskListener event="create"
+                                       expression="${mulitiInstanceTaskListener.completeListener(execution)}"/>
+                <flowable:taskListener expression="${taskCreateListener.notify(task)}" event="create"/>
+                <flowable:taskListener expression="${taskDeleteListener.notify(task)}" event="delete"/>
+            </extensionElements>
+            <outgoing>Flow_1dz2re4</outgoing>
+            <multiInstanceLoopCharacteristics activiti:collection="persons" activiti:elementVariable="person">
+                <loopCardinality>3</loopCardinality>
+                <completionCondition>${nrOfCompletedInstances/nrOfInstances &gt;= 1 }</completionCondition>
+            </multiInstanceLoopCharacteristics>
+        </userTask>
+        <sequenceFlow id="flow1" sourceRef="startevent1" targetRef="usertask1"/>
+        <endEvent id="endevent1" name="End">
+            <incoming>Flow_08p2gxt</incoming>
+        </endEvent>
+        <sequenceFlow id="Flow_1dz2re4" sourceRef="usertask1" targetRef="Activity_1y3pvyb"/>
+        <userTask id="Activity_1y3pvyb" name="T1" flowable:assignee="${INITIATOR}" flowable:userType="initiator">
+            <incoming>Flow_1dz2re4</incoming>
+            <outgoing>Flow_0jfdfbx</outgoing>
+            <extensionElements>
+                <flowable:taskListener expression="${taskCreateListener.notify(task)}" event="create"/>
+                <flowable:taskListener expression="${taskDeleteListener.notify(task)}" event="delete"/>
+            </extensionElements>
 
-    </userTask>
-    <sequenceFlow id="Flow_0jfdfbx" sourceRef="Activity_1y3pvyb" targetRef="T2" />
-    <sequenceFlow id="Flow_08p2gxt" sourceRef="T2" targetRef="endevent1" />
-    <userTask id="T2" flowable:userType="initiator">
-      <incoming>Flow_0jfdfbx</incoming>
-      <outgoing>Flow_08p2gxt</outgoing>
-      <extensionElements>
-        <flowable:taskListener expression="${taskCreateListener.notify(task)}" event="create" />
-        <flowable:taskListener expression="${taskDeleteListener.notify(task)}" event="delete" />
-      </extensionElements>
-    </userTask>
-  </process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_myProcess">
-    <bpmndi:BPMNPlane id="BPMNPlane_myProcess" bpmnElement="myProcess">
-      <bpmndi:BPMNEdge id="Flow_1dz2re4_di" bpmnElement="Flow_1dz2re4">
-        <omgdi:waypoint x="512" y="150" />
-        <omgdi:waypoint x="546" y="150" />
-        <omgdi:waypoint x="546" y="140" />
-        <omgdi:waypoint x="580" y="140" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_flow1" bpmnElement="flow1">
-        <omgdi:waypoint x="347" y="199" />
-        <omgdi:waypoint x="460" y="199" />
-        <omgdi:waypoint x="460" y="177" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0jfdfbx_di" bpmnElement="Flow_0jfdfbx">
-        <omgdi:waypoint x="680" y="140" />
-        <omgdi:waypoint x="750" y="140" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_08p2gxt_di" bpmnElement="Flow_08p2gxt">
-        <omgdi:waypoint x="850" y="140" />
-        <omgdi:waypoint x="900" y="140" />
-        <omgdi:waypoint x="900" y="328" />
-        <omgdi:waypoint x="950" y="328" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="BPMNShape_endevent1" bpmnElement="endevent1">
-        <omgdc:Bounds x="950" y="310" width="35" height="35" />
-        <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="958" y="345" width="20" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_startevent1" bpmnElement="startevent1">
-        <omgdc:Bounds x="312" y="182" width="35" height="35" />
-        <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="317" y="217" width="25" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_usertask1" bpmnElement="usertask1">
-        <omgdc:Bounds x="407" y="122" width="105" height="55" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_10elyxo_di" bpmnElement="Activity_1y3pvyb">
-        <omgdc:Bounds x="580" y="100" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1rqamz3_di" bpmnElement="T2">
-        <omgdc:Bounds x="750" y="100" width="100" height="80" />
-      </bpmndi:BPMNShape>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
+        </userTask>
+        <sequenceFlow id="Flow_0jfdfbx" sourceRef="Activity_1y3pvyb" targetRef="T2"/>
+        <sequenceFlow id="Flow_08p2gxt" sourceRef="T2" targetRef="endevent1"/>
+        <userTask id="T2" flowable:userType="initiator">
+            <incoming>Flow_0jfdfbx</incoming>
+            <outgoing>Flow_08p2gxt</outgoing>
+            <extensionElements>
+                <flowable:taskListener expression="${taskCreateListener.notify(task)}" event="create"/>
+                <flowable:taskListener expression="${taskDeleteListener.notify(task)}" event="delete"/>
+            </extensionElements>
+        </userTask>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_myProcess">
+        <bpmndi:BPMNPlane id="BPMNPlane_myProcess" bpmnElement="myProcess">
+            <bpmndi:BPMNEdge id="Flow_1dz2re4_di" bpmnElement="Flow_1dz2re4">
+                <omgdi:waypoint x="512" y="150"/>
+                <omgdi:waypoint x="546" y="150"/>
+                <omgdi:waypoint x="546" y="140"/>
+                <omgdi:waypoint x="580" y="140"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_flow1" bpmnElement="flow1">
+                <omgdi:waypoint x="347" y="199"/>
+                <omgdi:waypoint x="460" y="199"/>
+                <omgdi:waypoint x="460" y="177"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_0jfdfbx_di" bpmnElement="Flow_0jfdfbx">
+                <omgdi:waypoint x="680" y="140"/>
+                <omgdi:waypoint x="750" y="140"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_08p2gxt_di" bpmnElement="Flow_08p2gxt">
+                <omgdi:waypoint x="850" y="140"/>
+                <omgdi:waypoint x="900" y="140"/>
+                <omgdi:waypoint x="900" y="328"/>
+                <omgdi:waypoint x="950" y="328"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNShape id="BPMNShape_endevent1" bpmnElement="endevent1">
+                <omgdc:Bounds x="950" y="310" width="35" height="35"/>
+                <bpmndi:BPMNLabel>
+                    <omgdc:Bounds x="958" y="345" width="20" height="14"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_startevent1" bpmnElement="startevent1">
+                <omgdc:Bounds x="312" y="182" width="35" height="35"/>
+                <bpmndi:BPMNLabel>
+                    <omgdc:Bounds x="317" y="217" width="25" height="14"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_usertask1" bpmnElement="usertask1">
+                <omgdc:Bounds x="407" y="122" width="105" height="55"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Activity_10elyxo_di" bpmnElement="Activity_1y3pvyb">
+                <omgdc:Bounds x="580" y="100" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Activity_1rqamz3_di" bpmnElement="T2">
+                <omgdc:Bounds x="750" y="100" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
 </definitions>

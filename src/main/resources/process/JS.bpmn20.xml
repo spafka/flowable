@@ -39,7 +39,7 @@
             <documentation>JS 脚本任务</documentation>
             <script><![CDATA[var sum=a+b;
 
-                 var s=processId
+
                  var s= processEngineConfiguration.getApplicationContext().getBean("ss").s();
                  execution.setVariable("myprocessId",processId);
                  execution.setVariable("init",init);

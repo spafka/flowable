@@ -325,7 +325,7 @@ public class Graphs {
     }
 
     private static boolean isParallelGateway(TopologyNode<BaseElement> y) {
-        return y.node instanceof ParallelGateway || (y.node instanceof InclusiveGateway && ((InclusiveGateway) y.node).getOutgoingFlows().stream().noneMatch(z -> z.getSkipExpression() == null && z.getConditionExpression() == null));
+        return y.node instanceof ParallelGateway || (y.node instanceof InclusiveGateway);
     }
 
 

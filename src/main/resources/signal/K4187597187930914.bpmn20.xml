@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.flowable.org/processdef">
+
+    <signal id="SignalEventDefinition_1621823993208_signal" name="system:RemoteCollector:collector103:ValueChangeEvent"
+            flowable:scope="processInstance"/>
+    <process id="K4187597187930914" name="回归测试" isExecutable="true">
+        <subProcess id="SubProcess_1621823843158" name="subProcess" triggeredByEvent="true">
+            <userTask id="UserTask_1621823857249" name="子流程" flowable:formFieldValidation="true"/>
+            <startEvent id="SignalStartEvent_1621824008457" name="启动流程" isInterrupting="false"
+                        flowable:initiator="startUser">
+                <signalEventDefinition signalRef="SignalEventDefinition_1621823993208_signal"/>
+            </startEvent>
+            <endEvent id="sid-C8211C71-712E-4C40-83AE-583CD5C7010E"/>
+            <sequenceFlow id="edge_1621824010483" sourceRef="SignalStartEvent_1621824008457"
+                          targetRef="UserTask_1621823857249"/>
+            <sequenceFlow id="sid-B1188783-926E-4A10-91DB-39A1524243B0" sourceRef="UserTask_1621823857249"
+                          targetRef="sid-C8211C71-712E-4C40-83AE-583CD5C7010E"/>
+        </subProcess>
+        <startEvent id="tag_1" name="启动流程" flowable:initiator="startUser" flowable:formFieldValidation="true"/>
+        <userTask id="UserTask_1621823680914" name="启动" flowable:formFieldValidation="true"/>
+        <sequenceFlow id="edge_1621823680947" sourceRef="tag_1" targetRef="UserTask_1621823680914"/>
+        <userTask id="UserTask_1621823682361" name="人员-接收通知" flowable:formFieldValidation="true">
+        </userTask>
+        <userTask id="UserTask_1621823688133" name="角色" flowable:formFieldValidation="true"/>
+        <boundaryEvent id="TimerEventDefinition_1621823907907" cancelActivity="false"
+                       attachedToRef="UserTask_1621823682361">
+            <extensionElements>
+                <flowable:executionListener expression="#{timerEndEventDelagate.execute(execution)}" event="end"/>
+            </extensionElements>
+            <timerEventDefinition>
+                <timeDuration xsi:type="tFormalExpression">PT5S</timeDuration>
+            </timerEventDefinition>
+        </boundaryEvent>
+        <intermediateThrowEvent id="SignalEventDefinition_1621823993208">
+            <signalEventDefinition signalRef="SignalEventDefinition_1621823993208_signal"/>
+        </intermediateThrowEvent>
+        <sequenceFlow id="edge_1621823682361" name="主流程" sourceRef="UserTask_1621823680914"
+                      targetRef="UserTask_1621823682361"/>
+        <endEvent id="sid-89EB2F89-0849-4C92-B62D-CA01245C999E"/>
+        <sequenceFlow id="edge_1621823995797" sourceRef="TimerEventDefinition_1621823907907"
+                      targetRef="SignalEventDefinition_1621823993208"/>
+        <sequenceFlow id="sid-9ECB408C-A002-463D-9CA4-68EB04A40F0F" name="结束" sourceRef="UserTask_1621823688133"
+                      targetRef="sid-89EB2F89-0849-4C92-B62D-CA01245C999E">
+            <conditionExpression xsi:type="tFormalExpression">${!audit}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="sid-35B19728-A1EC-4B85-8ADB-ED49557C9085" sourceRef="UserTask_1621823682361"
+                      targetRef="UserTask_1621823688133"/>
+        <sequenceFlow id="sid-93FD1290-8A78-4C20-80B8-186B514E1EDF" name="驳回" sourceRef="UserTask_1621823688133"
+                      targetRef="UserTask_1621823682361">
+            <conditionExpression xsi:type="tFormalExpression">${audit}</conditionExpression>
+        </sequenceFlow>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_K4187597187930913">
+        <bpmndi:BPMNPlane id="BPMNPlane_K4187597187930913" bpmnElement="K4187597187930913">
+            <bpmndi:BPMNShape id="BPMNShape_SubProcess_1621823843158" bpmnElement="SubProcess_1621823843158">
+                <omgdc:Bounds x="105" y="240" width="600" height="260"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_tag_1" bpmnElement="tag_1">
+                <omgdc:Bounds x="0" y="20" width="30" height="30"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_UserTask_1621823680914" bpmnElement="UserTask_1621823680914">
+                <omgdc:Bounds x="80" y="5" width="100" height="60"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_UserTask_1621823682361" bpmnElement="UserTask_1621823682361">
+                <omgdc:Bounds x="195" y="45" width="100" height="60"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_UserTask_1621823688133" bpmnElement="UserTask_1621823688133">
+                <omgdc:Bounds x="470" y="30" width="100" height="60"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_SignalEventDefinition_1621823993208"
+                              bpmnElement="SignalEventDefinition_1621823993208">
+                <omgdc:Bounds x="165" y="165" width="30" height="30"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_sid-89EB2F89-0849-4C92-B62D-CA01245C999E"
+                              bpmnElement="sid-89EB2F89-0849-4C92-B62D-CA01245C999E">
+                <omgdc:Bounds x="645" y="46" width="28" height="28"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_TimerEventDefinition_1621823907907"
+                              bpmnElement="TimerEventDefinition_1621823907907">
+                <omgdc:Bounds x="260.20710678118655" y="90.20710678118655" width="31" height="31"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge id="BPMNEdge_edge_1621823680947" bpmnElement="edge_1621823680947">
+                <omgdi:waypoint x="29.949998618355412" y="35"/>
+                <omgdi:waypoint x="80" y="35"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_edge_1621823682361" bpmnElement="edge_1621823682361">
+                <omgdi:waypoint x="130" y="64.95"/>
+                <omgdi:waypoint x="130" y="75"/>
+                <omgdi:waypoint x="195" y="75"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_edge_1621823995797" bpmnElement="edge_1621823995797">
+                <omgdi:waypoint x="275.70710678118655" y="121.1571043630495"/>
+                <omgdi:waypoint x="275.70710678118655" y="194.0625"/>
+                <omgdi:waypoint x="194.94998375023653" y="194.0625"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_sid-9ECB408C-A002-463D-9CA4-68EB04A40F0F"
+                             bpmnElement="sid-9ECB408C-A002-463D-9CA4-68EB04A40F0F">
+                <omgdi:waypoint x="569.9499999999921" y="60"/>
+                <omgdi:waypoint x="645" y="60"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_sid-35B19728-A1EC-4B85-8ADB-ED49557C9085"
+                             bpmnElement="sid-35B19728-A1EC-4B85-8ADB-ED49557C9085">
+                <omgdi:waypoint x="294.94999999998413" y="75"/>
+                <omgdi:waypoint x="470" y="75"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_sid-93FD1290-8A78-4C20-80B8-186B514E1EDF"
+                             bpmnElement="sid-93FD1290-8A78-4C20-80B8-186B514E1EDF">
+                <omgdi:waypoint x="520" y="89.95"/>
+                <omgdi:waypoint x="520" y="118"/>
+                <omgdi:waypoint x="294.95" y="90.11769911504425"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+    <bpmndi:BPMNDiagram>
+        <bpmndi:BPMNPlane bpmnElement="SubProcess_1621823843158">
+            <bpmndi:BPMNShape id="BPMNShape_UserTask_1621823857249" bpmnElement="UserTask_1621823857249">
+                <omgdc:Bounds x="355" y="160" width="100" height="60"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_SignalStartEvent_1621824008457"
+                              bpmnElement="SignalStartEvent_1621824008457">
+                <omgdc:Bounds x="180" y="175" width="30" height="30"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_sid-C8211C71-712E-4C40-83AE-583CD5C7010E"
+                              bpmnElement="sid-C8211C71-712E-4C40-83AE-583CD5C7010E">
+                <omgdc:Bounds x="625" y="176" width="28" height="28"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge id="BPMNEdge_edge_1621824010483" bpmnElement="edge_1621824010483">
+                <omgdi:waypoint x="209.94999958549698" y="190"/>
+                <omgdi:waypoint x="354.9999999998776" y="190"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="BPMNEdge_sid-B1188783-926E-4A10-91DB-39A1524243B0"
+                             bpmnElement="sid-B1188783-926E-4A10-91DB-39A1524243B0">
+                <omgdi:waypoint x="454.95000000000005" y="190"/>
+                <omgdi:waypoint x="625" y="190"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

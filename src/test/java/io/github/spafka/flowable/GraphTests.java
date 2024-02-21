@@ -284,4 +284,15 @@ public class GraphTests {
     }
 
 
+    @Test
+    public void testParalBack() {
+
+        BpmnModel bpmnModel = init("src/main/resources/并行网关驳回.bpmn20.xml");
+
+        var jumpTypeEnum = Graphs.backTrack(bpmnModel,null , null);
+
+        System.out.println();
+    }
+
+
 }

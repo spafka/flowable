@@ -85,6 +85,7 @@ public class SimpleSerialSubProcessTests extends FlowBase {
         ProcessInstance processInstance = runtimeService
                 .startProcessInstanceByKey(processDefinition.getKey(), variables);
 
+        this.processInstanceId = processInstance.getProcessInstanceId();
         Task task = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).singleResult();
         if (Objects.nonNull(task)) {
             String userIdStr = (String) variables.get(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR);
@@ -128,6 +129,9 @@ public class SimpleSerialSubProcessTests extends FlowBase {
         complete("whf", "T8");
         complete("whf", "T9");
         return2Node("T10", "T3");
+
+        show();
+
         complete("whf", "T3");
         complete("whf", "T7");
         complete("whf", "T8");
@@ -157,8 +161,11 @@ public class SimpleSerialSubProcessTests extends FlowBase {
         complete("whf", "T10");
         complete("whf", "T11");
         complete("whf", "T12");
+        show(processInstanceId);
         List<FlowNodeDto> flowNodeDtos = listCanRetuen("T0");
         return2Node("T0", "T3");
+
+        show(processInstanceId);
         complete("whf", "T3");
         complete("whf", "T7");
         complete("whf", "T8");
@@ -269,8 +276,8 @@ public class SimpleSerialSubProcessTests extends FlowBase {
         complete("whf", "T2");
         complete("whf", "T2-2");
         complete("whf", "T3");
-        complete("whf","T9");
-        complete("whf","T10");
+        complete("whf", "T9");
+        complete("whf", "T10");
         return2Node("T7", "T1");
 
 
@@ -475,6 +482,23 @@ public class SimpleSerialSubProcessTests extends FlowBase {
         complete("whf", "T4");
 
         assert listall().isEmpty();
+    }
+
+    @Test
+    @DisplayName("并行驳回")
+    public void test_back2Start() {
+        deploy();
+        submit();
+        complete("whf", "T2");
+
+        listCanRetuen("T2-2");
+
+        return2Node("T2-2", "startNode1");
+
+        List<Task> listall = listall(processInstanceId);
+
+        System.out.println();
+
     }
 
 

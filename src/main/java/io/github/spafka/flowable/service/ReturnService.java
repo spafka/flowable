@@ -31,5 +31,5 @@ public interface ReturnService {
      * @param targetId userTask id
      * @return
      */
-    boolean returnToTarget(Task task, String targetId);
+    boolean returnToTarget(Task task, String... targetId);
 }

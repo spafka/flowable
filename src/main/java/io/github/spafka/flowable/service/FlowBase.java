@@ -18,6 +18,7 @@ import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.TaskInfo;
+import org.flowable.task.api.TaskQuery;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,7 @@ public class FlowBase {
 
     public String processInstanceId;
 
-   public ProcessDefinition processDefinition;
+    public ProcessDefinition processDefinition;
 
 
     public void diagram(RepositoryService repositoryService, String processName) {
@@ -116,8 +117,11 @@ public class FlowBase {
 
     public void complete(String user) {
 
-        List<Task> list = taskService.createTaskQuery()
-                .taskAssignee(user)
+        TaskQuery taskQuery = taskService.createTaskQuery();
+        if (user != null) {
+            taskQuery.taskAssignee(user);
+        }
+        List<Task> list = taskQuery
                 .list();
         Task task1 = list.get(0);
         taskService.complete(task1.getId(), taskService.getVariables(task1.getId()));
@@ -155,7 +159,7 @@ public class FlowBase {
                 (a, b) -> a);
     }
 
-    public void return2Node(String from, String to) {
+    public void return2Node(String from, String... to) {
         Task task;
         List<Task> all = taskService.createTaskQuery()
                 .list();
@@ -201,13 +205,13 @@ public class FlowBase {
                 .startProcessInstanceByKey(processDefinition.getKey(), variables);
 
         processInstanceId = processInstance.getProcessInstanceId();
-//        Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
-//        if (Objects.nonNull(task)) {
-//            String userIdStr = (String) variables.get(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR);
-//            if (StringUtils.equals(task.getAssignee(), userIdStr)) {
-//                taskService.complete(task.getId(), variables);
-//            }
-//        }
+        Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
+        if (Objects.nonNull(task)) {
+            String userIdStr = (String) variables.get(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR);
+            if (StringUtils.equals(task.getAssignee(), userIdStr)) {
+                taskService.complete(task.getId(), variables);
+            }
+        }
 
     }
 }

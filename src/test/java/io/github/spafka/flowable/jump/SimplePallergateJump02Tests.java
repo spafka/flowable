@@ -12,6 +12,8 @@ import org.flowable.bpmn.model.BaseElement;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.engine.*;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.Execution;
+import org.flowable.task.api.Task;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +21,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -126,14 +129,56 @@ public class SimplePallergateJump02Tests extends FlowBase {
 
         submit();
 
-        runtimeService.createChangeActivityStateBuilder()
-                .processInstanceId(processInstanceId)
-                .moveActivityIdTo("T2", "Event_0f0plbe")
-                .changeState();
+
+        complete("whf", "T2");
+        complete("whf", "T4-2");
+        complete("whf", "T4-1");
+        complete("whf", "T3");
+        List<FlowNodeDto> t5 = listCanRetuen("T5");
+        return2Node("T5","T3","T4-2","T4-1");
+        List<Execution> execution = runtimeService.createExecutionQuery().processInstanceId(
+                processInstanceId
+        ).list();
+
+
+        complete("whf", "T4-2");
+        complete("whf", "T4-1");
+        complete("whf", "T3");
+
+        complete("whf","T5");
+        List<Execution> executions = runtimeService.createExecutionQuery().processInstanceId(
+                processInstanceId
+        ).list();
+
+        List<Task> list = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
+
 
         show(processInstanceId);
 
 
+    }
+
+    @Test
+    public void jumpTall() {
+
+
+        deploy();
+        submit();
+
+        complete("whf", "T2");
+        complete("whf", "T4-2");
+        complete("whf", "T4-1");
+        complete("whf", "T3");
+        List<FlowNodeDto> t5 = listCanRetuen("T5");
+
+        runtimeService.createChangeActivityStateBuilder()
+                .processInstanceId(processInstanceId)
+                .moveSingleActivityIdToActivityIds("T5", Arrays.asList("T3", "T4-1", "T4-2"))
+                .changeState();
+
+        show(super.processInstanceId);
+
+        System.out.println();
 
     }
 

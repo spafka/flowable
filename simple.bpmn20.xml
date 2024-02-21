@@ -1,129 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef" exporter="Flowable Open Source Modeler" exporterVersion="6.7.2">
-  <signal id="SignalEventDefinition_1621823993208_signal" name="report_report:chart:Chart_Example:ValueChangeEvent" flowable:scope="processInstance"></signal>
-  <process id="K1353567853857009" name="回归测试" isExecutable="true">
-    <subProcess id="SubProcess_Start" name="subProcess" triggeredByEvent="true">
-      <userTask id="T4" name="T4" flowable:assignee="${INITIATOR}" flowable:formFieldValidation="true">
-        <extensionElements>
-          <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"></flowable:taskListener>
-          <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"></flowable:taskListener>
-          <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler"><![CDATA[true]]></modeler:activiti-idm-initiator>
-        </extensionElements>
-      </userTask>
-      <startEvent id="SignalStartEvent_1621824008457" name="启动流程111" flowable:initiator="startUser" isInterrupting="false">
-        <signalEventDefinition signalRef="SignalEventDefinition_1621823993208_signal"></signalEventDefinition>
-      </startEvent>
-      <endEvent id="EndEvent2"></endEvent>
-      <sequenceFlow id="edge_1621824010483" sourceRef="SignalStartEvent_1621824008457" targetRef="T4"></sequenceFlow>
-      <sequenceFlow id="edge_1694569394491" sourceRef="T4" targetRef="EndEvent2"></sequenceFlow>
-    </subProcess>
-    <startEvent id="startNode" name="启动流程" flowable:initiator="startUser" flowable:formFieldValidation="true"></startEvent>
-    <userTask id="T1" name="T1" flowable:assignee="${INITIATOR}" flowable:formFieldValidation="true">
+  <signal id="theSignal" name="信号" flowable:scope="global" />
+  <process id="SignalIntermediateCatchingEvent" name="中间信号捕获和抛出事件测试" isExecutable="true">
+    <startEvent id="aed01518ca37e4c5b820abada9e7edc17" />
+    <userTask id="aded12dde53c444b9b7a8a99d265b7b2d" name="付款申请">
       <extensionElements>
-        <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"></flowable:taskListener>
-        <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"></flowable:taskListener>
-        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler"><![CDATA[true]]></modeler:activiti-idm-initiator>
+        <flowable:formData />
+        <flowable:assigneeType>static</flowable:assigneeType>
       </extensionElements>
     </userTask>
-    <sequenceFlow id="edge_1621823680947" sourceRef="startNode" targetRef="T1"></sequenceFlow>
-    <userTask id="T2" name="T2" flowable:assignee="${INITIATOR}" flowable:formFieldValidation="true">
+    <sequenceFlow id="a273f2adba0ac45f1acbff9d4d821de61" sourceRef="aed01518ca37e4c5b820abada9e7edc17" targetRef="aded12dde53c444b9b7a8a99d265b7b2d" />
+    <sequenceFlow id="Flow_1sfqb6b" sourceRef="aded12dde53c444b9b7a8a99d265b7b2d" targetRef="Gateway_0ef4904" />
+    <parallelGateway id="Gateway_0ef4904" />
+    <sequenceFlow id="Flow_0ituttz" sourceRef="Gateway_0ef4904" targetRef="Event_0374yen" />
+    <intermediateCatchEvent id="Event_0374yen">
+      <signalEventDefinition signalRef="theSignal" />
+    </intermediateCatchEvent>
+    <userTask id="Activity_0hbesbz" name="部门主管审批">
       <extensionElements>
-        <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"></flowable:taskListener>
-        <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"></flowable:taskListener>
-        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler"><![CDATA[true]]></modeler:activiti-idm-initiator>
+        <flowable:formData />
+        <flowable:assigneeType>static</flowable:assigneeType>
       </extensionElements>
     </userTask>
-    <sequenceFlow id="edge_1621823682361" name="主流程" sourceRef="T1" targetRef="T2"></sequenceFlow>
-    <userTask id="T3" name="T3" flowable:assignee="${INITIATOR}" flowable:formFieldValidation="true">
+    <sequenceFlow id="Flow_0ypus8y" sourceRef="Event_0374yen" targetRef="Activity_0hbesbz" />
+    <sequenceFlow id="Flow_00epdwi" sourceRef="Gateway_0ef4904" targetRef="Event_1mpvo0c" />
+    <userTask id="Activity_1mf7r17" name="财务主管审批">
       <extensionElements>
-        <flowable:taskListener event="create" expression="${taskCreateListener.notify(task)}"></flowable:taskListener>
-        <flowable:taskListener event="delete" expression="${taskDeleteListener.notify(task)}"></flowable:taskListener>
-        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler"><![CDATA[true]]></modeler:activiti-idm-initiator>
+        <flowable:assigneeType>static</flowable:assigneeType>
+        <flowable:formData />
       </extensionElements>
     </userTask>
-    <endEvent id="EndEvent1"></endEvent>
-    <boundaryEvent id="TimerEventDefinition_1" attachedToRef="T2" cancelActivity="false">
+    <sequenceFlow id="Flow_1eni8ec" sourceRef="Event_1mpvo0c" targetRef="Activity_1mf7r17" />
+    <sequenceFlow id="Flow_0vg3vj4" sourceRef="Gateway_0ef4904" targetRef="Activity_18sdoo1" />
+    <userTask id="Activity_18sdoo1" name="业务主管确认">
       <extensionElements>
-        <flowable:executionListener event="end" expression="#{timerEndEventDelagate.execute(execution)}"></flowable:executionListener>
+        <flowable:formData />
+        <flowable:assigneeType>static</flowable:assigneeType>
       </extensionElements>
-      <timerEventDefinition>
-        <timeDate>${date}</timeDate>
-      </timerEventDefinition>
-    </boundaryEvent>
-    <intermediateThrowEvent id="SignalEventDefinition_1621823993208">
-      <signalEventDefinition signalRef="SignalEventDefinition_1621823993208_signal"></signalEventDefinition>
+    </userTask>
+    <sequenceFlow id="Flow_0yffw90" sourceRef="Activity_0hbesbz" targetRef="Gateway_1ss0n3z" />
+    <parallelGateway id="Gateway_1ss0n3z" />
+    <sequenceFlow id="Flow_1jg3xvu" sourceRef="Activity_1mf7r17" targetRef="Gateway_1ss0n3z" />
+    <userTask id="Activity_153vvhu" name="财务打款">
+      <extensionElements>
+        <flowable:assigneeType>static</flowable:assigneeType>
+        <flowable:formData />
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="Flow_15cmtof" sourceRef="Gateway_1ss0n3z" targetRef="Activity_153vvhu" />
+    <endEvent id="Event_1a1foyk" />
+    <sequenceFlow id="Flow_0aj4r74" sourceRef="Activity_153vvhu" targetRef="Event_1a1foyk" />
+    <intermediateCatchEvent id="Event_1mpvo0c">
+      <signalEventDefinition signalRef="theSignal" />
+    </intermediateCatchEvent>
+    <sequenceFlow id="Flow_0un80br" sourceRef="Activity_18sdoo1" targetRef="Event_02cn8n4" />
+    <intermediateThrowEvent id="Event_02cn8n4">
+      <signalEventDefinition signalRef="theSignal" />
     </intermediateThrowEvent>
-    <sequenceFlow id="edge_1694569384308" sourceRef="T2" targetRef="T3"></sequenceFlow>
-    <sequenceFlow id="edge_1621823995797" sourceRef="TimerEventDefinition_1" targetRef="SignalEventDefinition_1621823993208"></sequenceFlow>
-    <sequenceFlow id="edge_1621823741003" sourceRef="T3" targetRef="EndEvent1"></sequenceFlow>
+    <sequenceFlow id="Flow_0no5qu7" sourceRef="Event_02cn8n4" targetRef="Gateway_1ss0n3z" />
   </process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_K1353567853857009">
-    <bpmndi:BPMNPlane bpmnElement="K1353567853857009" id="BPMNPlane_K1353567853857009">
-      <bpmndi:BPMNShape bpmnElement="SubProcess_Start" id="BPMNShape_SubProcess_Start">
-        <omgdc:Bounds height="100.0" width="300.0" x="0.0" y="120.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="T4" id="BPMNShape_T4">
-        <omgdc:Bounds height="60.0" width="100.0" x="100.0" y="140.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="SignalStartEvent_1621824008457" id="BPMNShape_SignalStartEvent_1621824008457">
-        <omgdc:Bounds height="30.0" width="30.0" x="20.0" y="155.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="EndEvent2" id="BPMNShape_EndEvent2">
-        <omgdc:Bounds height="28.0" width="28.0" x="240.0" y="156.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="startNode" id="BPMNShape_startNode">
-        <omgdc:Bounds height="30.0" width="30.0" x="0.0" y="15.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="T1" id="BPMNShape_T1">
-        <omgdc:Bounds height="60.0" width="100.0" x="75.0" y="0.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="T2" id="BPMNShape_T2">
-        <omgdc:Bounds height="60.0" width="100.0" x="230.0" y="0.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="T3" id="BPMNShape_T3">
-        <omgdc:Bounds height="60.0" width="100.0" x="380.0" y="0.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="EndEvent1" id="BPMNShape_EndEvent1">
-        <omgdc:Bounds height="28.0" width="28.0" x="530.0" y="15.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="TimerEventDefinition_1" id="BPMNShape_TimerEventDefinition_1">
-        <omgdc:Bounds height="31.0" width="31.0" x="295.20710678118655" y="45.20710678118655"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="SignalEventDefinition_1621823993208" id="BPMNShape_SignalEventDefinition_1621823993208">
-        <omgdc:Bounds height="30.0" width="30.0" x="690.0" y="195.0"></omgdc:Bounds>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge bpmnElement="edge_1621823680947" id="BPMNEdge_edge_1621823680947" flowable:sourceDockerX="15.0" flowable:sourceDockerY="15.0" flowable:targetDockerX="50.0" flowable:targetDockerY="30.0">
-        <omgdi:waypoint x="29.949998489957597" y="30.0"></omgdi:waypoint>
-        <omgdi:waypoint x="74.99999999999667" y="30.0"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="edge_1621823682361" id="BPMNEdge_edge_1621823682361" flowable:sourceDockerX="50.0" flowable:sourceDockerY="30.0" flowable:targetDockerX="50.0" flowable:targetDockerY="30.0">
-        <omgdi:waypoint x="174.94999999998666" y="30.0"></omgdi:waypoint>
-        <omgdi:waypoint x="230.0" y="30.0"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="edge_1621824010483" id="BPMNEdge_edge_1621824010483" flowable:sourceDockerX="15.0" flowable:sourceDockerY="15.0" flowable:targetDockerX="50.0" flowable:targetDockerY="30.0">
-        <omgdi:waypoint x="49.94999861835542" y="170.0"></omgdi:waypoint>
-        <omgdi:waypoint x="100.0" y="170.0"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="edge_1694569394491" id="BPMNEdge_edge_1694569394491" flowable:sourceDockerX="50.0" flowable:sourceDockerY="30.0" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
-        <omgdi:waypoint x="199.95" y="170.0"></omgdi:waypoint>
-        <omgdi:waypoint x="240.0" y="170.0"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="edge_1694569384308" id="BPMNEdge_edge_1694569384308" flowable:sourceDockerX="50.0" flowable:sourceDockerY="30.0" flowable:targetDockerX="50.0" flowable:targetDockerY="30.0">
-        <omgdi:waypoint x="329.95000000000005" y="30.0"></omgdi:waypoint>
-        <omgdi:waypoint x="342.0" y="30.0"></omgdi:waypoint>
-        <omgdi:waypoint x="342.0" y="30.000000000000007"></omgdi:waypoint>
-        <omgdi:waypoint x="379.99999999999045" y="30.000000000000007"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="edge_1621823995797" id="BPMNEdge_edge_1621823995797" flowable:sourceDockerX="15.500000000000002" flowable:sourceDockerY="15.500000000000002" flowable:targetDockerX="15.0" flowable:targetDockerY="15.0">
-        <omgdi:waypoint x="325.159585467113" y="66.1794567127643"></omgdi:waypoint>
-        <omgdi:waypoint x="690.958199999455" y="204.68703943145476"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="edge_1621823741003" id="BPMNEdge_edge_1621823741003" flowable:sourceDockerX="50.0" flowable:sourceDockerY="30.0" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
-        <omgdi:waypoint x="479.95000000000005" y="30.0"></omgdi:waypoint>
-        <omgdi:waypoint x="492.0" y="30.0"></omgdi:waypoint>
-        <omgdi:waypoint x="492.0" y="30.0"></omgdi:waypoint>
-        <omgdi:waypoint x="530.0025321198765" y="29.26822082569018"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
+
 </definitions>

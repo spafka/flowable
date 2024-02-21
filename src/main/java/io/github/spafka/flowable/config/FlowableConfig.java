@@ -158,7 +158,7 @@ public class FlowableConfig implements EngineConfigurationConfigurer<SpringProce
             public void onEvent(FlowableEvent flowableEvent) {
 
                 String processInstanceId = ((FlowableEntityEventImpl) flowableEvent).getProcessInstanceId();
-                System.err.println(processInstanceId + "任务完成");
+                System.err.println(processInstanceId + "流程结束");
 
                 log.debug("{} 任务完成", processInstanceId);
             }
